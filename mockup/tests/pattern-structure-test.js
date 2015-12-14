@@ -36,15 +36,16 @@ define([
       // clear cookie setting
       $.removeCookie('_fc_perPage');
 
-      this.$el = $('' +
-        '<div class="pat-structure" ' +
-             'data-pat-structure="vocabularyUrl:/data.json;' +
-                                 'uploadUrl:/upload;' +
-                                 'moveUrl:/moveitem;' +
-                                 'indexOptionsUrl:/tests/json/queryStringCriteria.json;' +
-                                 'contextInfoUrl:{path}/contextInfo;' +
-                                 ' ">' +
-        '</div>').appendTo('body');
+      var structure = {
+        "vocabularyUrl": "/data.json",
+        "uploadUrl": "/upload",
+        "moveUrl": "/moveitem",
+        "indexOptionsUrl": "/tests/json/queryStringCriteria.json",
+        "contextInfoUrl": "{path}/contextInfo",
+      };
+
+      this.$el = $('<div class="pat-structure"></div>').attr(
+        'data-pat-structure', JSON.stringify(structure)).appendTo('body');
 
       this.server = sinon.fakeServer.create();
       this.server.autoRespond = true;
@@ -141,6 +142,7 @@ define([
       extraDataJsonItem = null;
       this.server.restore();
       this.clock.restore();
+      $('body').html('');
     });
 
     it('initialize', function() {
@@ -322,4 +324,120 @@ define([
     });
 
   });
+
+  /* ==========================
+   TEST: Structure Customized
+  ========================== */
+  describe('Structure Customized', function() {
+    beforeEach(function() {
+      // clear cookie setting
+      $.removeCookie('_fc_perPage');
+
+      var structure = {
+        "vocabularyUrl": "/data.json",
+        "indexOptionsUrl": "/tests/json/queryStringCriteria.json",
+        "contextInfoUrl": "{path}/contextInfo",
+        "buttons": [{
+          "url": "foo",
+          "title": "Foo",
+          "id": "foo",
+          "icon": ""
+        }]
+      };
+
+      this.$el = $('<div class="pat-structure"></div>').attr(
+        'data-pat-structure', JSON.stringify(structure)).appendTo('body');
+
+      this.server = sinon.fakeServer.create();
+      this.server.autoRespond = true;
+
+      this.server.respondWith('GET', /data.json/, function (xhr, id) {
+        var batch = JSON.parse(getQueryVariable(xhr.url, 'batch'));
+        var start = 0;
+        var end = 15;
+        if (batch) {
+          start = (batch.page - 1) * batch.size;
+          end = start + batch.size;
+        }
+        var items = [];
+
+        xhr.respond(200, { 'Content-Type': 'application/json' }, JSON.stringify({
+          total: 0,
+          results: items
+        }));
+      });
+      this.server.respondWith('GET', /contextInfo/, function (xhr, id) {
+        var data = {
+          addButtons: []
+        };
+        if (xhr.url.indexOf('folder') !== -1){
+          data.object = {
+            UID: '123sdfasdfFolder',
+            getURL: 'http://localhost:8081/folder',
+            path: '/folder',
+            portal_type: 'Folder',
+            Description: 'folder',
+            Title: 'Folder',
+            'review_state': 'published',
+            'is_folderish': true,
+            Subject: [],
+            id: 'folder'
+          };
+        }
+        xhr.respond(200, { 'Content-Type': 'application/json' }, JSON.stringify(data));
+      });
+
+      this.clock = sinon.useFakeTimers();
+    });
+
+    afterEach(function() {
+      this.server.restore();
+      this.clock.restore();
+      $('body').html('');
+    });
+
+    it('initialize', function() {
+      registry.scan(this.$el);
+      expect(this.$el.find('.order-support > table').size()).to.equal(1);
+    });
+
+    it('per page', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      this.$el.find('.serverhowmany15 a').trigger('click');
+      this.clock.tick(1000);
+      expect(this.$el.find('.itemRow').length).to.equal(0);
+      this.$el.find('.serverhowmany30 a').trigger('click');
+      this.clock.tick(1000);
+      expect(this.$el.find('.itemRow').length).to.equal(0);
+    });
+
+    it('test select all', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      var $item = this.$el.find('table th .select-all');
+      $item[0].checked = true;
+      $item.trigger('change');
+      this.clock.tick(1000);
+      expect(this.$el.find('#btn-selected-items').html()).to.contain('0');
+
+    });
+
+    it('test unselect all', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      var $item = this.$el.find('table th .select-all');
+      $item[0].checked = true;
+      $item.trigger('change');
+      this.clock.tick(1000);
+      expect(this.$el.find('#btn-selected-items').html()).to.contain('0');
+      $item[0].checked = false;
+      $item.trigger('change');
+      this.clock.tick(1000);
+      expect(this.$el.find('#btn-selected-items').html()).to.contain('0');
+    });
+
+  });
+
+
 });
