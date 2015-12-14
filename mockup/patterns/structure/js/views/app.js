@@ -199,11 +199,13 @@ define([
         self.buttons.disable();
       }
 
-      self.pasteAllowed = !!$.cookie('__cp');
-      if (self.pasteAllowed) {
-        self.buttons.get('paste').enable();
-      }else{
-        self.buttons.get('paste').disable();
+      if ('paste' in self.buttons) {
+        self.pasteAllowed = !!$.cookie('__cp');
+        if (self.pasteAllowed) {
+          self.buttons.get('paste').enable();
+        }else{
+          self.buttons.get('paste').disable();
+        }
       }
     },
     inQueryMode: function() {
