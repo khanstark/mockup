@@ -35,6 +35,7 @@ define([
     beforeEach(function() {
       // clear cookie setting
       $.removeCookie('_fc_perPage');
+      $.removeCookie('_fc_activeColumns');
 
       var structure = {
         "vocabularyUrl": "/data.json",
@@ -321,6 +322,52 @@ define([
       $checkbox.trigger('change');
       this.clock.tick(1000);
       expect(this.$el.find('#btn-selected-items').html()).to.contain('1');
+    });
+
+    it('test select displayed columns', function() {
+      registry.scan(this.$el);
+      this.clock.tick(500);
+      var $row = this.$el.find('table thead tr').eq(1);
+      expect($row.find('th').length).to.equal(6);
+      expect($row.find('th').eq(1).text()).to.equal('Title');
+      expect($row.find('th').eq(2).text()).to.equal('Last modified');
+      expect($row.find('th').eq(3).text()).to.equal('Published');
+      expect($row.find('th').eq(4).text()).to.equal('Review state');
+      expect($row.find('th').eq(5).text()).to.equal('Actions');
+
+      expect($.cookie('_fc_activeColumns')).to.be(undefined);
+
+      this.$el.find('#btn-attribute-columns').trigger('click');
+      this.clock.tick(500);
+
+      var $checkbox = this.$el.find(
+          '.attribute-columns input[value="getObjSize"]');
+      $checkbox[0].checked = true;
+      $checkbox.trigger('change');
+      this.clock.tick(500);
+
+      var $popover = this.$el.find('.popover.attribute-columns');
+      expect($popover.find('button').text()).to.equal('Save');
+      $popover.find('button').trigger('click');
+      this.clock.tick(500);
+
+      $row = this.$el.find('table thead tr').eq(1);
+      expect($row.find('th').length).to.equal(7);
+      expect($row.find('th').eq(5).text()).to.equal('Object Size');
+      expect($row.find('th').eq(6).text()).to.equal('Actions');
+      expect($.parseJSON($.cookie('_fc_activeColumns')).value).to.eql(
+          ["ModificationDate", "EffectiveDate", "review_state", "getObjSize"]);
+
+      $checkbox[0].checked = false;
+      $checkbox.trigger('change');
+      $popover.find('button').trigger('click');
+      this.clock.tick(500);
+
+      $row = this.$el.find('table thead tr').eq(1);
+      expect($row.find('th').length).to.equal(6);
+      expect($.parseJSON($.cookie('_fc_activeColumns')).value).to.eql(
+          ["ModificationDate", "EffectiveDate", "review_state"]);
+
     });
 
   });
