@@ -469,7 +469,8 @@ define([
       );
     },
     setAllCookieSettings: function() {
-      this.activeColumns = this.getCookieSetting('activeColumns', this.activeColumns);
+      this.activeColumns = this.getCookieSetting(this['activeColumnsCookie'],
+                                                 this.activeColumns);
       var perPage = this.getCookieSetting('perPage', 15);
       if(typeof(perPage) === 'string'){
         perPage = parseInt(perPage);

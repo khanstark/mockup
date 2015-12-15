@@ -60,6 +60,7 @@ define([
         'EffectiveDate',
         'review_state'
       ],
+      activeColumnsCookie: 'activeColumns',
       availableColumns: {
         'id': 'ID',
         'ModificationDate': 'Last modified',
