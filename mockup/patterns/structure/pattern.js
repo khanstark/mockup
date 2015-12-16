@@ -86,8 +86,18 @@ define([
       },
       basePath: '/',
       moveUrl: null,
-      buttons: [],
-      demoButtons: [{
+
+      /*
+        As the options operate on a merging basis per new attribute
+        (key/value pairs) down recursively, array items are also treated
+        as Objects so that index 0 is replaced and so on, giving the
+        appearance that buttons (or columns/other attribtues) are simply
+        replaced if the default values are defined in the same space as
+        the user-modifiable values.  The following define pairs of
+        customizable attributes and their default values.
+      */
+      buttons: null,
+      defaultButtons: [{
         title: 'Cut',
         url: '/cut'
       },{
@@ -114,18 +124,23 @@ define([
         title: 'Rename',
         url: '/rename'
       }],
+
       upload: {
         uploadMultiple: true,
         showTitle: true
       }
+
     },
     init: function() {
       var self = this;
-      if(self.options.buttons.length === 0){
-        /* XXX I know this is wonky... but this prevents
-           weird option merging issues */
-        self.options.buttons = self.options.demoButtons;
+      /*
+        This part replaces the undefined (null) values in the user
+        modifiable attributes with the default values
+      */
+      if (self.options.buttons === null) {
+        self.options.buttons = self.options.defaultButtons;
       }
+
       self.browsing = true; // so all queries will be correct with QueryHelper
       self.options.collectionUrl = self.options.vocabularyUrl;
       self.options.queryHelper = new utils.QueryHelper(
