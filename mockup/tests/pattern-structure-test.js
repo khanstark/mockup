@@ -559,12 +559,19 @@ define([
     beforeEach(function() {
       // clear cookie setting
       $.removeCookie('_fc_perPage');
+      $.removeCookie('_fc_activeColumnsCustom');
 
       var structure = {
         "vocabularyUrl": "/data.json",
         "indexOptionsUrl": "/tests/json/queryStringCriteria.json",
         "contextInfoUrl": "{path}/contextInfo",
         "activeColumnsCookie": "activeColumnsCustom",
+        "activeColumns": ["getObjSize"],
+        "availableColumns": {
+          "id": "ID",
+          "CreationDate": "Created",
+          "getObjSize": "Object Size"
+        },
         "buttons": []
       };
 
@@ -624,6 +631,16 @@ define([
       this.clock.tick(1000);
       var buttons = this.$el.find('#btngroup-mainbuttons a');
       expect(buttons.length).to.equal(0);
+    });
+
+    it('test select displayed columns', function() {
+      registry.scan(this.$el);
+      this.clock.tick(500);
+      var $row = this.$el.find('table thead tr').eq(1);
+      expect($row.find('th').length).to.equal(4);
+      expect($row.find('th').eq(1).text()).to.equal('Title');
+      expect($row.find('th').eq(2).text()).to.equal('Object Size');
+      expect($row.find('th').eq(3).text()).to.equal('Actions');
     });
 
   });

@@ -49,19 +49,37 @@ define([
       contextInfoUrl: null, // for add new dropdown and other info
       setDefaultPageUrl: null,
       backdropSelector: '.plone-modal', // Element upon which to apply backdrops used for popovers
-      attributes: [
+
+      activeColumnsCookie: 'activeColumns',
+
+      /*
+        As the options operate on a merging basis per new attribute
+        (key/value pairs) on the option Object in a recursive fashion,
+        array items are also treated as Objects so that custom options
+        are replaced starting from index 0 up to the length of the
+        array.  In the case of buttons, custom buttons are simply
+        replaced starting from the first one.  The following defines the
+        customized attributes that should be replaced wholesale, with
+        the default version prefixed with `_default_`.
+      */
+
+      attributes: null,
+      _default_attributes: [
         'UID', 'Title', 'portal_type', 'path', 'review_state',
         'ModificationDate', 'EffectiveDate', 'CreationDate',
         'is_folderish', 'Subject', 'getURL', 'id', 'exclude_from_nav',
         'getObjSize', 'last_comment_date', 'total_comments','getIcon'
       ],
-      activeColumns: [
+
+      activeColumns: null,
+      _default_activeColumns: [
         'ModificationDate',
         'EffectiveDate',
         'review_state'
       ],
-      activeColumnsCookie: 'activeColumns',
-      availableColumns: {
+
+      availableColumns: null,
+      _default_availableColumns: {
         'id': 'ID',
         'ModificationDate': 'Last modified',
         'EffectiveDate': 'Published',
@@ -87,17 +105,8 @@ define([
       basePath: '/',
       moveUrl: null,
 
-      /*
-        As the options operate on a merging basis per new attribute
-        (key/value pairs) down recursively, array items are also treated
-        as Objects so that index 0 is replaced and so on, giving the
-        appearance that buttons (or columns/other attribtues) are simply
-        replaced if the default values are defined in the same space as
-        the user-modifiable values.  The following define pairs of
-        customizable attributes and their default values.
-      */
       buttons: null,
-      defaultButtons: [{
+      _default_buttons: [{
         title: 'Cut',
         url: '/cut'
       },{
@@ -133,13 +142,21 @@ define([
     },
     init: function() {
       var self = this;
+
       /*
         This part replaces the undefined (null) values in the user
-        modifiable attributes with the default values
+        modifiable attributes with the default values.
+
+        May want to consider moving the _default_* values out of the
+        options object.
       */
-      if (self.options.buttons === null) {
-        self.options.buttons = self.options.defaultButtons;
-      }
+      var checkDefaults = [
+          'attributes', 'activeColumns', 'availableColumns', 'buttons'];
+      _.each(checkDefaults, function(idx) {
+        if (self.options[idx] === null) {
+          self.options[idx] = self.options['_default_' + idx];
+        }
+      });
 
       self.browsing = true; // so all queries will be correct with QueryHelper
       self.options.collectionUrl = self.options.vocabularyUrl;
