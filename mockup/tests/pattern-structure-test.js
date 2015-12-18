@@ -646,4 +646,116 @@ define([
   });
 
 
+  /* ==========================
+   TEST: Structure barebone columns
+  ========================== */
+  describe('Structure barebone columns', function() {
+    beforeEach(function() {
+      // clear cookie setting
+      $.removeCookie('_fc_perPage');
+      $.removeCookie('_fc_activeColumnsCustom');
+
+      var structure = {
+        "vocabularyUrl": "/data.json",
+        "indexOptionsUrl": "/tests/json/queryStringCriteria.json",
+        "contextInfoUrl": "{path}/contextInfo",
+        "activeColumnsCookie": "activeColumnsCustom",
+        "activeColumns": [],
+        "availableColumns": {
+          "getURL": "URL",
+        },
+        "buttons": [],
+        "attributes": [
+          'Title', 'getURL'
+        ]
+      };
+
+      this.$el = $('<div class="pat-structure"></div>').attr(
+        'data-pat-structure', JSON.stringify(structure)).appendTo('body');
+
+      this.server = sinon.fakeServer.create();
+      this.server.autoRespond = true;
+
+      this.server.respondWith('GET', /data.json/, function (xhr, id) {
+        var batch = JSON.parse(getQueryVariable(xhr.url, 'batch'));
+        var start = 0;
+        var end = 15;
+        if (batch) {
+          start = (batch.page - 1) * batch.size;
+          end = start + batch.size;
+        }
+        var items = [];
+        items.push({
+          /*
+          getURL: 'http://localhost:8081/folder',
+          Title: 'Folder',
+          id: 'folder'
+          */
+          // 'portal_type', 'review_state', 'getURL'
+
+          getURL: 'http://localhost:8081/folder',
+          Title: 'Folder',
+        });
+        for (var i = start; i < end; i = i + 1) {
+          items.push({
+            /*
+            getURL: 'http://localhost:8081/item' + i,
+            Title: 'Document ' + i,
+            id: 'item' + i
+            */
+
+            getURL: 'http://localhost:8081/item' + i,
+            Title: 'Document ' + i,
+          });
+        }
+
+        xhr.respond(200, { 'Content-Type': 'application/json' }, JSON.stringify({
+          total: 100,
+          results: items
+        }));
+      });
+      this.server.respondWith('GET', /contextInfo/, function (xhr, id) {
+        var data = {
+          addButtons: []
+        };
+        if (xhr.url.indexOf('folder') !== -1){
+          data.object = {
+            UID: '123sdfasdfFolder',
+            getURL: 'http://localhost:8081/folder',
+            path: '/folder',
+            portal_type: 'Folder',
+            Description: 'folder',
+            Title: 'Folder',
+            'review_state': 'published',
+            'is_folderish': true,
+            Subject: [],
+            id: 'folder'
+          };
+        }
+        xhr.respond(200, { 'Content-Type': 'application/json' }, JSON.stringify(data));
+      });
+
+      this.clock = sinon.useFakeTimers();
+    });
+
+    afterEach(function() {
+      this.server.restore();
+      this.clock.restore();
+      $('body').html('');
+    });
+
+    it('per page', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      this.$el.find('.serverhowmany15 a').trigger('click');
+      this.clock.tick(1000);
+      expect(this.$el.find('.itemRow').length).to.equal(16);
+      this.$el.find('.serverhowmany30 a').trigger('click');
+      this.clock.tick(1000);
+      expect(this.$el.find('.itemRow').length).to.equal(31);
+    });
+
+  });
+
+
 });
