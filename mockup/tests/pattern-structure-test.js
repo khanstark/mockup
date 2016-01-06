@@ -378,6 +378,21 @@ define([
       expect(buttons.length).to.equal(8);
     });
 
+    it('test itemRow actionmenu move-top click', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      // top item
+      var item0 = $(this.$el.find('.itemRow')[0]);
+      expect(item0.data().id).to.equal('folder');
+      var item10 = $(this.$el.find('.itemRow')[10]);
+      expect(item10.data().id).to.equal('item9');
+
+      item10.find('.actionmenu .move-top a').click();
+
+      var item = $(this.$el.find('.itemRow')[0]);
+      expect(item.data().id, 'item9');
+    });
+
   });
 
   /* ==========================
