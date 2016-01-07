@@ -3,8 +3,13 @@ define([
   'jquery',
   'pat-registry',
   'mockup-patterns-structure',
+  'mockup-patterns-structure-url/js/views/actionmenu',
+  'mockup-patterns-structure-url/js/views/app',
+  'mockup-patterns-structure-url/js/models/result',
+  'mockup-utils',
   'sinon',
-], function(expect, $, registry, Structure, sinon) {
+], function(expect, $, registry, Structure, ActionMenu, AppView, Result,
+            utils, sinon) {
   'use strict';
 
   window.mocha.setup('bdd');
@@ -26,6 +31,49 @@ define([
   }
 
   var extraDataJsonItem = null;
+
+
+  /* ==========================
+   TEST: Per Item Action Buttons
+  ========================== */
+  describe('Per Item Action Buttons', function() {
+    beforeEach(function() {
+      this.$el = $('<div id="item"></div>').appendTo('body');
+    });
+
+    it('basic action menu rendering', function() {
+      /*
+        queryHelper and AppView instances for now due to the tight
+        coupling that exist for the moment.  The relationship should be
+        changed so that the render method don't poke into app but should
+        be supplied the details on a need-to-use basis.
+      */
+      var queryHelper = new utils.QueryHelper({});
+      var app = new AppView({
+        'queryHelper': queryHelper,
+        'setDefaultPageUrl': '',
+      });
+
+      var model = new Result({
+          "is_folderish": true,
+          "review_state": "published"
+      });
+
+      var menu = new ActionMenu({
+        app: app,
+        model: model,
+        header: 'Menu Header'
+      });
+
+      var el = menu.render().el;
+
+      expect($('li.dropdown-header', el).text()).to.equal('Menu Header');
+      expect($('li a', el).length).to.equal(7);
+      expect($($('li a', el)[0]).text()).to.equal('Cut');
+
+    });
+
+  });
 
 
   /* ==========================
