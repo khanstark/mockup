@@ -38,10 +38,21 @@ define([
   ========================== */
   describe('Per Item Action Buttons', function() {
     beforeEach(function() {
-      this.$el = $('<div id="item"></div>').appendTo('body');
-    });
+      this.server = sinon.fakeServer.create();
+      this.server.autoRespond = true;
 
-    it('basic action menu rendering', function() {
+      this.server.respondWith('POST', '/cut', function (xhr, id) {
+        xhr.respond(200, { 'Content-Type': 'application/json' },
+                    JSON.stringify({
+          status: 'success',
+          msg: 'cut'
+        }));
+      });
+
+      this.clock = sinon.useFakeTimers();
+
+      this.$el = $('<div id="item"></div>').appendTo('body');
+
       /*
         queryHelper and AppView instances for now due to the tight
         coupling that exist for the moment.  The relationship should be
@@ -49,18 +60,34 @@ define([
         be supplied the details on a need-to-use basis.
       */
       var queryHelper = new utils.QueryHelper({});
-      var app = new AppView({
+      this.app = new AppView({
         'queryHelper': queryHelper,
+
+        // XXX ActionButton need this lookup directly.
+        'buttons': [{'title': 'Cut', 'url': '/cut'}],
+
+        'activeColumns': [],
+        'availableColumns': [],
+        'indexOptionsUrl': '',
         'setDefaultPageUrl': '',
       });
+      this.app.render();
+    });
 
+    afterEach(function() {
+      this.clock.restore();
+      this.server.restore();
+    });
+
+    it('basic action menu rendering', function() {
       var model = new Result({
+          "Title": "Dummy Object",
           "is_folderish": true,
           "review_state": "published"
       });
 
       var menu = new ActionMenu({
-        app: app,
+        app: this.app,
         model: model,
         header: 'Menu Header'
       });
@@ -70,6 +97,11 @@ define([
       expect($('li.dropdown-header', el).text()).to.equal('Menu Header');
       expect($('li a', el).length).to.equal(7);
       expect($($('li a', el)[0]).text()).to.equal('Cut');
+
+      $('.cutItem a', el).click();
+      this.clock.tick(500);
+
+      expect(this.app.$('.status').text()).to.equal('Cut "Dummy Object"');
 
     });
 
