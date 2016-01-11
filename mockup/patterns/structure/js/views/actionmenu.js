@@ -12,24 +12,90 @@ define([
 ], function($, _, Backbone, BaseView, Result, utils, Actions, ActionMenuTemplate, _t) {
   'use strict';
 
+  var eventConstructor = function(self, definition) {
+    var lib = definition[0],
+        key = definition[1];
+    var doEvent = function (e) {
+      require([lib], function(Lib) {
+        new Lib(self)[key](e);
+      });
+    };
+    return doEvent;
+  };
+
   var ActionMenu = BaseView.extend({
     className: 'btn-group actionmenu',
     template: _.template(ActionMenuTemplate),
-    events: function() {
-      // figure out a way to let third-party supply their own ``define``ed
-      // functions into this thing.
-      return {
-        'click .selectAll a': this.actions.selectAll,
-        'click .cutItem a': this.actions.cutClicked,
-        'click .copyItem a': this.actions.copyClicked,
-        'click .pasteItem a': this.actions.pasteClicked,
-        'click .move-top a': this.actions.moveTopClicked,
-        'click .move-bottom a': this.actions.moveBottomClicked,
-        'click .set-default-page a': this.actions.setDefaultPageClicked,
-        'click .openItem a': this.actions.openClicked,
-        'click .editItem a': this.actions.editClicked
-      }
+
+    eventTableDefaults: {
+      'cutItem': [
+        'mockup-patterns-structure-url/js/actions',
+        'cutClicked',
+        '#',
+        'Cut',
+      ],
+      'copyItem': [
+        'mockup-patterns-structure-url/js/actions',
+        'copyClicked',
+        '#',
+        'Copy'
+      ],
+      'pasteItem': [
+        'mockup-patterns-structure-url/js/actions',
+        'pasteClicked',
+        '#',
+        'Paste'
+      ],
+      'move-top': [
+        'mockup-patterns-structure-url/js/actions',
+        'moveTopClicked',
+        '#',
+        'Move to top of folder'
+      ],
+      'move-bottom': [
+        'mockup-patterns-structure-url/js/actions',
+        'moveBottomClicked',
+        '#',
+        'Move to bottom of folder'
+      ],
+      'set-default-page': [
+        'mockup-patterns-structure-url/js/actions',
+        'setDefaultPageClicked',
+        '#',
+        'Set as default page'
+      ],
+      'selectAll': [
+        'mockup-patterns-structure-url/js/actions',
+        'selectAll',
+        '#',
+        'Select all contained items'
+      ],
+      'openItem': [
+        'mockup-patterns-structure-url/js/actions',
+        'openClicked',
+        '#',
+        'Open'
+      ],
+      'editItem': [
+        'mockup-patterns-structure-url/js/actions',
+        'editClicked',
+        '#',
+        'Edit'
+      ],
     },
+
+    events: function() {
+      // XXX providing ALL the actions in the eventTableDefaults
+      // fix this later when the filtering checks are moved from template
+      // to a dynamic user specified definition.
+      var self = this;
+      var result = {};
+      _.each(this.eventTableDefaults, function(eventItem, idx) {
+        result['click .' + idx + ' a'] = eventConstructor(self, eventItem);
+      });
+      return result;
+    },
+
     initialize: function(options) {
       this.options = options;
       this.app = options.app;
@@ -40,7 +106,6 @@ define([
       }else {
         this.canMove = true;
       }
-      this.actions = new Actions(this);
     },
     render: function() {
       var self = this;

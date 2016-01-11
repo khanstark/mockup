@@ -10,15 +10,6 @@ define([
 ], function($, _, Backbone, BaseView, Result, utils, _t) {
   'use strict';
 
-  /*
-    Moved out of Actions to the root of this closure.
-
-    Javascript's this/self references don't always behave as one might
-    expect - calling the instantiated callable "object" directly within
-    an "instance object" might not actually "propagate" the `this`
-    reference as expected.  Though it does have closures, so rather use
-    that for a shared function within one.
-  */
   var doAction = function(self, buttonName, successMsg, failMsg){
     $.ajax({
       url: self.app.buttons.get(buttonName).options.url,
