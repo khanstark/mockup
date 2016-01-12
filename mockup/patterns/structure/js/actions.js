@@ -10,27 +10,6 @@ define([
 ], function($, _, Backbone, BaseView, Result, utils, _t) {
   'use strict';
 
-  var doAction = function(self, buttonName, successMsg, failMsg){
-    $.ajax({
-      url: self.app.buttons.get(buttonName).options.url,
-      data: {
-        selection: JSON.stringify([self.model.attributes.UID]),
-        folder: self.model.attributes.path,
-        _authenticator: utils.getAuthenticator()
-      },
-      dataType: 'json',
-      type: 'POST'
-    }).done(function(data){
-      if(data.status === 'success'){
-        self.app.setStatus(_t(successMsg + ' "' + self.model.attributes.Title + '"'));
-        self.app.collection.pager();
-        self.app.updateButtons();
-      }else{
-        self.app.setStatus(_t('Error ' + failMsg + ' "' + self.model.attributes.Title + '"'));
-      }
-    }); 
-  };
-
   // use a more primative class than Backbone.Model?
   var Actions = Backbone.Model.extend({
     initialize: function(options) {
@@ -78,17 +57,42 @@ define([
       getPage();
     },
 
+    doAction: function(buttonName, successMsg, failMsg){
+      var self = this;
+      $.ajax({
+        url: self.app.buttons.get(buttonName).options.url,
+        data: {
+          selection: JSON.stringify([self.model.attributes.UID]),
+          folder: self.model.attributes.path,
+          _authenticator: utils.getAuthenticator()
+        },
+        dataType: 'json',
+        type: 'POST'
+      }).done(function(data){
+        if(data.status === 'success'){
+          self.app.setStatus(_t(successMsg + ' "' + self.model.attributes.Title + '"'));
+          self.app.collection.pager();
+          self.app.updateButtons();
+        }else{
+          self.app.setStatus(_t('Error ' + failMsg + ' "' + self.model.attributes.Title + '"'));
+        }
+      });
+    },
+
     cutClicked: function(e) {
+      var self = this;
       e.preventDefault();
-      doAction(this, 'cut', _t('Cut'), _t('cutting'));
+      self.doAction('cut', _t('Cut'), _t('cutting'));
     },
     copyClicked: function(e) {
+      var self = this;
       e.preventDefault();
-      doAction(this, 'copy', _t('Copied'), _t('copying'));
+      self.doAction('copy', _t('Copied'), _t('copying'));
     },
     pasteClicked: function(e) {
+      var self = this;
       e.preventDefault();
-      doAction(this, 'paste', _t('Pasted into'), _t('Error pasting into'));
+      self.doAction('paste', _t('Pasted into'), _t('Error pasting into'));
     },
     moveTopClicked: function(e) {
       e.preventDefault();

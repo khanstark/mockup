@@ -12,17 +12,6 @@ define([
 ], function($, _, Backbone, BaseView, Result, utils, Actions, ActionMenuTemplate, _t) {
   'use strict';
 
-  var eventConstructor = function(self, definition) {
-    var lib = definition[0],
-        key = definition[1];
-    var doEvent = function (e) {
-      require([lib], function(Lib) {
-        new Lib(self)[key](e);
-      });
-    };
-    return doEvent;
-  };
-
   var ActionMenu = BaseView.extend({
     className: 'btn-group actionmenu',
     template: _.template(ActionMenuTemplate),
@@ -84,14 +73,26 @@ define([
       ],
     },
 
+    eventConstructor: function(definition) {
+      var self = this;
+      var lib = definition[0],
+          key = definition[1];
+      var doEvent = function (e) {
+        require([lib], function(Lib) {
+          new Lib(self)[key](e);
+        });
+      };
+      return doEvent;
+    },
+
     events: function() {
       // XXX providing ALL the actions in the eventTableDefaults
       // fix this later when the filtering checks are moved from template
       // to a dynamic user specified definition.
       var self = this;
       var result = {};
-      _.each(this.eventTableDefaults, function(eventItem, idx) {
-        result['click .' + idx + ' a'] = eventConstructor(self, eventItem);
+      _.each(self.eventTableDefaults, function(eventItem, idx) {
+        result['click .' + idx + ' a'] = self.eventConstructor(eventItem);
       });
       return result;
     },
