@@ -105,6 +105,36 @@ define([
 
     });
 
+    it('custom action menu items', function() {
+      var model = new Result({
+          "Title": "Dummy Object",
+          "is_folderish": true,
+          "review_state": "published"
+      });
+
+      var menu = new ActionMenu({
+        app: this.app,
+        model: model,
+        menuOptions: {
+          'cutItem': [
+            'mockup-patterns-structure-url/js/actions',
+            'cutClicked',
+            '#',
+            'Cut',
+          ],
+        },
+      });
+
+      var el = menu.render().el;
+      expect($('li a', el).length).to.equal(1);
+      expect($($('li a', el)[0]).text()).to.equal('Cut');
+
+      $('.cutItem a', el).click();
+      this.clock.tick(500);
+      expect(this.app.$('.status').text()).to.equal('Cut "Dummy Object"');
+
+    });
+
   });
 
 
