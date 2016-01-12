@@ -77,6 +77,7 @@ define([
     afterEach(function() {
       this.clock.restore();
       this.server.restore();
+      requirejs.undef('dummytestactionmenu');
     });
 
     it('basic action menu rendering', function() {
@@ -133,6 +134,98 @@ define([
       this.clock.tick(500);
       expect(this.app.$('.status').text()).to.equal('Cut "Dummy Object"');
 
+    });
+
+    it('custom action menu items and actions.', function() {
+      // Define a custom dummy "module"
+      define('dummytestactionmenu', ['backbone'], function(Backbone) {
+        var Actions = Backbone.Model.extend({
+          initialize: function(options) {
+            this.options = options;
+            this.app = options.app;
+          },
+          foobarClicked: function(e) {
+            var self = this;
+            self.app.setStatus('Status: foobar clicked');
+          }
+        });
+        return Actions;
+      });
+
+      var model = new Result({
+          "is_folderish": true,
+          "review_state": "published"
+      });
+
+      // Make use if that dummy in here.
+      var menu = new ActionMenu({
+        app: this.app,
+        model: model,
+        menuOptions: {
+          'foobar': [
+            'dummytestactionmenu',
+            'foobarClicked',
+            '#',
+            'Foo Bar',
+          ],
+        },
+      });
+
+      var el = menu.render().el;
+      expect($('li a', el).length).to.equal(1);
+      expect($($('li a', el)[0]).text()).to.equal('Foo Bar');
+
+      $('.foobar a', el).click();
+      this.clock.tick(500);
+      expect(this.app.$('.status').text()).to.equal('Status: foobar clicked');
+    });
+
+    it('custom action menu items and actions.', function() {
+      // Define a custom dummy "module"
+      define('dummytestactionmenu', ['backbone'], function(Backbone) {
+        var Actions = Backbone.Model.extend({
+          initialize: function(options) {
+            this.options = options;
+            this.app = options.app;
+          },
+          barbazClicked: function(e) {
+            var self = this;
+            self.app.setStatus('Status: barbaz clicked');
+          }
+        });
+        return Actions;
+      });
+
+      var model = new Result({
+          "is_folderish": true,
+          "review_state": "published"
+      });
+
+      // Make use if that dummy in here.
+      var menu = new ActionMenu({
+        app: this.app,
+        model: model,
+        menuOptions: {
+          'foobar': [
+            'dummytestactionmenu',
+            'foobarClicked',
+            '#',
+            'Foo Bar',
+          ],
+          'barbaz': [
+            'dummytestactionmenu',
+            'barbazClicked',
+            '#',
+            'Bar Baz',
+          ],
+        },
+      });
+
+      // Broken/missing action
+      var el = menu.render().el;
+      $('.foobar a', el).click();
+      this.clock.tick(500);
+      expect(this.app.$('.status').text().trim()).to.equal('');
     });
 
   });
