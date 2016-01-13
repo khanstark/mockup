@@ -352,6 +352,7 @@ define([
 
     it('initialize', function() {
       registry.scan(this.$el);
+      // moveUrl provided, can get to this via order-support.
       expect(this.$el.find('.order-support > table').size()).to.equal(1);
     });
 
@@ -672,7 +673,8 @@ define([
 
     it('initialize', function() {
       registry.scan(this.$el);
-      expect(this.$el.find('.order-support > table').size()).to.equal(1);
+      // no order-support for this one due to lack of moveUrl
+      expect(this.$el.find('.order-support > table').size()).to.equal(0);
     });
 
     it('per page', function() {
@@ -913,17 +915,22 @@ define([
 
           getURL: 'http://localhost:8081/folder',
           Title: 'Folder',
+          // Other required fields.
+          id: 'folder',
+          UID: 'folder'
         });
         for (var i = start; i < end; i = i + 1) {
           items.push({
             /*
             getURL: 'http://localhost:8081/item' + i,
             Title: 'Document ' + i,
-            id: 'item' + i
             */
 
             getURL: 'http://localhost:8081/item' + i,
             Title: 'Document ' + i,
+            // Other required fields.
+            id: 'item' + i,
+            UID: 'item' + i
           });
         }
 
@@ -971,6 +978,17 @@ define([
       this.$el.find('.serverhowmany30 a').trigger('click');
       this.clock.tick(1000);
       expect(this.$el.find('.itemRow').length).to.equal(31);
+    });
+
+    it('test itemRow actionmenu move-top none', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      // top item
+      var item = $(this.$el.find('.itemRow')[1]);
+      expect(item.data().id).to.equal('item0');
+      // Since no moveUrl, no move-top or move-bottom.
+      expect(item.find('.actionmenu .move-top a').length).to.equal(0);
+      expect(item.find('.actionmenu .move-bottom a').length).to.equal(0);
     });
 
   });

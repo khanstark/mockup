@@ -51,9 +51,12 @@ define([
 
       self.el.model = this.model;
 
+      var canMove = (!(!self.options.moveUrl));
+
       self.menu = new ActionMenu({
         app: self.app,
-        model: self.model
+        model: self.model,
+        canMove: canMove,
       });
 
       $('.actionmenu-container', self.$el).append(self.menu.render().el);

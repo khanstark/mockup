@@ -105,7 +105,11 @@ define([
         selector: '.ModificationDate,.EffectiveDate,.CreationDate,.ExpirationDate',
         format: self.options.app.momentFormat
       });
-      self.addReordering();
+
+      if (self.app.options.moveUrl) {
+        self.addReordering();
+      }
+
       self.storeOrder();
       return this;
     },
