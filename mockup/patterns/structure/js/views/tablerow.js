@@ -53,10 +53,19 @@ define([
 
       var canMove = (!(!self.options.moveUrl));
 
+      /*
+        TODO figure out how to let users of this and its parent classes
+        pass in custom `menuOptions` per item (`this.model`).  These
+        entries shouldn't (or couldn't) be associated directly to the
+        item at hand (i.e. keeping the actual model object itself pure),
+        but at the same time there needs to be some kind of way to
+        facilitate the association between the two.
+      */
       self.menu = new ActionMenu({
         app: self.app,
         model: self.model,
-        canMove: canMove,
+        menuOptions: self.app.menuOptions,
+        canMove: canMove
       });
 
       $('.actionmenu-container', self.$el).append(self.menu.render().el);
