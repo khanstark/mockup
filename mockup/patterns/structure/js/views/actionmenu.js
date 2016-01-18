@@ -61,13 +61,13 @@ define([
         'Select all contained items'
       ],
       'openItem': [
-        'mockup-patterns-structure-url/js/actions',
+        'mockup-patterns-structure-url/js/navigation',
         'openClicked',
         '#',
         'Open'
       ],
       'editItem': [
-        'mockup-patterns-structure-url/js/actions',
+        'mockup-patterns-structure-url/js/navigation',
         'editClicked',
         '#',
         'Edit'

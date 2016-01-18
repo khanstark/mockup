@@ -2,11 +2,12 @@ define([
   'jquery',
   'underscore',
   'backbone',
+  'mockup-patterns-structure-url/js/navigation',
   'mockup-patterns-structure-url/js/views/actionmenu',
   'text!mockup-patterns-structure-url/templates/tablerow.xml',
   'mockup-utils',
   'translate'
-], function($, _, Backbone, ActionMenu, TableRowTemplate, utils, _t) {
+], function($, _, Backbone, Nav, ActionMenu, TableRowTemplate, utils, _t) {
   'use strict';
 
   var TableRowView = Backbone.View.extend({
@@ -71,12 +72,19 @@ define([
       $('.actionmenu-container', self.$el).append(self.menu.render().el);
       return this;
     },
+    openClicked: function(e) {
+      var nav = new Nav({
+        app: this.app,
+        model: this.model
+      });
+      nav.openClicked(e);
+    },
     itemClicked: function(e) {
       e.preventDefault();
       /* check if this should just be opened in new window */
       var keyEvent = this.app.keyEvent;
       if (keyEvent && keyEvent.ctrlKey) {
-        this.menu.openClicked(e);
+        this.openClicked(e);
       } else if (this.model.attributes['is_folderish']) { // jshint ignore:line
         // it's a folder, go down path and show in contents window.
         this.app.queryHelper.currentPath = this.model.attributes.path;
@@ -84,7 +92,7 @@ define([
         var collection = this.app.collection;
         collection.goTo(collection.information.firstPage);
       } else {
-        this.menu.openClicked(e);
+        this.openClicked(e);
       }
     },
     itemSelected: function() {

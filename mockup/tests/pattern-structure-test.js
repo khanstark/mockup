@@ -15,6 +15,8 @@ define([
   window.mocha.setup('bdd');
   $.fx.off = true;
 
+  var dummyWindow = {};
+
   function getQueryVariable(url, variable) {
     var query = url.split('?')[1];
     if (query === undefined) {
@@ -355,6 +357,10 @@ define([
       });
 
       this.clock = sinon.useFakeTimers();
+
+      sinon.stub(utils, 'getWindow', function() {
+        return dummyWindow;
+      });
     });
 
     afterEach(function() {
@@ -362,6 +368,7 @@ define([
       this.server.restore();
       this.clock.restore();
       $('body').html('');
+      utils.getWindow.restore();
     });
 
     it('initialize', function() {
@@ -671,6 +678,21 @@ define([
       // No items actually moved, this is to be implemented server-side.
     });
 
+    it('test navigate to item', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      var pattern = this.$el.data('patternStructure');
+      var item = $(this.$el.find('.itemRow')[10]);
+      expect(item.data().id).to.equal('item9');
+      $('.title a', item).trigger('click');
+      this.clock.tick(1000);
+      expect(dummyWindow.location).to.equal('http://localhost:8081/item9/view');
+
+      $('.actionmenu ul li.editItem a', item).trigger('click');
+      this.clock.tick(1000);
+      expect(dummyWindow.location).to.equal('http://localhost:8081/item9/edit');
+    });
+
   });
 
   /* ==========================
@@ -737,12 +759,18 @@ define([
       });
 
       this.clock = sinon.useFakeTimers();
+
+      sinon.stub(utils, 'getWindow', function() {
+        return dummyWindow;
+      });
+
     });
 
     afterEach(function() {
       this.server.restore();
       this.clock.restore();
       $('body').html('');
+      utils.getWindow.restore();
     });
 
     it('initialize', function() {

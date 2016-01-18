@@ -120,37 +120,6 @@ define([
         }
       });
     },
-    getSelectedBaseUrl: function() {
-      var self = this;
-      return self.model.attributes.getURL;
-    },
-    getWindow: function() {
-      var win = window;
-      if (win.parent !== window) {
-        win = win.parent;
-      }
-      return win;
-    },
-    openUrl: function(url) {
-      var self = this;
-      var win = self.getWindow();
-      var keyEvent = this.app.keyEvent;
-      if (keyEvent && keyEvent.ctrlKey) {
-        win.open(url);
-      } else {
-        win.location = url;
-      }
-    },
-    openClicked: function(e) {
-      e.preventDefault();
-      var self = this;
-      self.openUrl(self.getSelectedBaseUrl() + '/view');
-    },
-    editClicked: function(e) {
-      e.preventDefault();
-      var self = this;
-      self.openUrl(self.getSelectedBaseUrl() + '/edit');
-    },
   });
 
   return Actions;

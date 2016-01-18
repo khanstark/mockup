@@ -1,0 +1,48 @@
+define([
+  'jquery',
+  'underscore',
+  'backbone',
+  'mockup-ui-url/views/base',
+  'mockup-patterns-structure-url/js/models/result',
+  'mockup-utils',
+  'translate',
+  'bootstrap-dropdown'
+], function($, _, Backbone, BaseView, Result, utils, _t) {
+  'use strict';
+
+  // use a more primative class than Backbone.Model?
+  var Navigation = Backbone.Model.extend({
+    initialize: function(options) {
+      this.options = options;
+      this.app = options.app;
+      this.model = options.model;
+    },
+
+    getSelectedBaseUrl: function() {
+      var self = this;
+      return self.model.attributes.getURL;
+    },
+    openUrl: function(url) {
+      var self = this;
+      var win = utils.getWindow();
+      var keyEvent = this.app.keyEvent;
+      if (keyEvent && keyEvent.ctrlKey) {
+        win.open(url);
+      } else {
+        win.location = url;
+      }
+    },
+    openClicked: function(e) {
+      e.preventDefault();
+      var self = this;
+      self.openUrl(self.getSelectedBaseUrl() + '/view');
+    },
+    editClicked: function(e) {
+      e.preventDefault();
+      var self = this;
+      self.openUrl(self.getSelectedBaseUrl() + '/edit');
+    },
+  });
+
+  return Navigation;
+});
