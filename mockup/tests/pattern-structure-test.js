@@ -237,6 +237,7 @@ define([
   describe('Structure', function() {
     beforeEach(function() {
       // clear cookie setting
+      $.removeCookie('__cp');
       $.removeCookie('_fc_perPage');
       $.removeCookie('_fc_activeColumns');
       $.removeCookie('_fc_activeColumnsCustom');
@@ -247,6 +248,7 @@ define([
         "moveUrl": "/moveitem",
         "indexOptionsUrl": "/tests/json/queryStringCriteria.json",
         "contextInfoUrl": "{path}/contextInfo",
+        "setDefaultPageUrl": "/setDefaultPage"
       };
 
       this.$el = $('<div class="pat-structure"></div>').attr(
@@ -310,6 +312,18 @@ define([
         xhr.respond(200, { 'Content-Type': 'application/json' }, JSON.stringify({
           status: 'success',
           msg: 'pasted'
+        }));
+      });
+      this.server.respondWith('POST', '/moveitem', function (xhr, id) {
+        xhr.respond(200, { 'Content-Type': 'application/json' }, JSON.stringify({
+          status: 'success',
+          msg: 'moved ' + xhr.requestBody
+        }));
+      });
+      this.server.respondWith('POST', '/setDefaultPage', function (xhr, id) {
+        xhr.respond(200, { 'Content-Type': 'application/json' }, JSON.stringify({
+          status: 'success',
+          msg: 'defaulted'
         }));
       });
       this.server.respondWith('GET', /contextInfo/, function (xhr, id) {
@@ -582,6 +596,58 @@ define([
       expect(buttons.length).to.equal(8);
     });
 
+    it('test itemRow default actionmenu folder', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      // folder
+      var folder = $(this.$el.find('.itemRow')[0]);
+      expect(folder.data().id).to.equal('folder');
+      expect($('.actionmenu ul li a', folder).length).to.equal(6);
+      // no pasting (see next test
+      expect($('.actionmenu ul li.pasteItem', folder).length).to.equal(0);
+      // no set default page
+      expect($('.actionmenu ul li.set-default-page a', folder).length
+        ).to.equal(0);
+      // can select all
+      expect($('.actionmenu ul li.selectAll', folder).text()).to.equal(
+        'Select all contained items');
+    });
+
+    it('test itemRow default actionmenu item', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+
+      var item = $(this.$el.find('.itemRow')[10]);
+      expect(item.data().id).to.equal('item9');
+      expect($('.actionmenu ul li a', item).length).to.equal(6);
+      // cannot select all
+      expect($('.actionmenu ul li.selectAll a', item).length).to.equal(0);
+      // can set default page
+      expect($('.actionmenu ul li.set-default-page', item).text()).to.equal(
+        'Set as default page');
+      $('.actionmenu ul li.set-default-page a', item).click();
+      this.clock.tick(1000);
+      expect(this.$el.find('.order-support .status').html()).to.contain(
+        'defaulted');
+    });
+
+    it('test itemRow actionmenu paste click', function() {
+      // item pending to be pasted
+      $.cookie('__cp', 'dummy');
+      this.clock.tick(1000);
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      // top item
+      var item0 = $(this.$el.find('.itemRow')[0]);
+      expect(item0.data().id).to.equal('folder');
+      expect($('.actionmenu ul li a', item0).length).to.equal(7);
+      expect($('.actionmenu ul li.pasteItem', item0).text()).to.equal('Paste');
+      $('.actionmenu ul li.pasteItem a', item0).click();
+      this.clock.tick(1000);
+      expect(this.$el.find('.order-support .status').html()).to.contain(
+        'Pasted into "Folder"');
+    });
+
     it('test itemRow actionmenu move-top click', function() {
       registry.scan(this.$el);
       this.clock.tick(1000);
@@ -591,10 +657,18 @@ define([
       var item10 = $(this.$el.find('.itemRow')[10]);
       expect(item10.data().id).to.equal('item9');
 
-      item10.find('.actionmenu .move-top a').click();
+      expect($('.actionmenu ul li.move-top', item10).text()).to.equal(
+        'Move to top of folder');
+      $('.actionmenu ul li.move-top a', item10).trigger('click');
+      this.clock.tick(1000);
 
-      var item = $(this.$el.find('.itemRow')[0]);
-      expect(item.data().id, 'item9');
+      expect(this.$el.find('.order-support .status').html()).to.contain(
+        'moved');
+      expect(this.$el.find('.order-support .status').html()).to.contain(
+        'delta=top');
+      expect(this.$el.find('.order-support .status').html()).to.contain(
+        'id=item9');
+      // No items actually moved, this is to be implemented server-side.
     });
 
   });

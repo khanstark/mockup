@@ -51,7 +51,7 @@ define([
 
       self.el.model = this.model;
 
-      var canMove = (!(!self.options.moveUrl));
+      var canMove = (!(!self.app.options.moveUrl));
 
       /*
         TODO figure out how to let users of this and its parent classes

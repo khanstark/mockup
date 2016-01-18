@@ -112,7 +112,7 @@ define([
           Manipulation/construction of menuOptions should not be done
           here.
         */
-        this.menuOptions = this._default_menuOptions;
+        this.menuOptions = _.clone(this._default_menuOptions);
         if (!this.app.pasteAllowed || !this.model.attributes.is_folderish) {
           delete this.menuOptions.pasteItem;
         }
