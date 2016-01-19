@@ -1199,7 +1199,7 @@ define([
   /* ==========================
    TEST: Structure alternative action buttons
   ========================== */
-  describe('Structure alternative action buttons', function() {
+  describe('Structure alternative action buttons and links', function() {
     beforeEach(function() {
       // clear cookie setting
       $.removeCookie('_fc_perPage');
@@ -1229,6 +1229,9 @@ define([
             'Option 2',
           ],
         },
+        'tableRowItemAction': {
+          'other': ['dummytestaction', 'handleOther'],
+        },
         "attributes": [
           'Title', 'getURL'
         ]
@@ -1251,6 +1254,15 @@ define([
         var items = [{
           getURL: 'http://localhost:8081/folder',
           Title: 'Folder',
+          'is_folderish': true,
+          path: '/folder',
+          id: 'folder'
+        }, {
+          getURL: 'http://localhost:8081/item',
+          Title: 'Item',
+          'is_folderish': false,
+          path: '/item',
+          id: 'item'
         }];
 
         xhr.respond(200, {'Content-Type': 'application/json'}, JSON.stringify({
@@ -1283,6 +1295,7 @@ define([
     });
 
     afterEach(function() {
+      requirejs.undef('dummytestaction');
       this.server.restore();
       this.clock.restore();
       $('body').html('');
@@ -1298,7 +1311,41 @@ define([
       expect($('.actionmenu .action2 a', item).text()).to.equal('Option 2');
     });
 
-  });
+    it('folder link not overriden', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      var item = this.$el.find('.itemRow').eq(0);
+      $('.title a.manage', item).trigger('click');
+      this.clock.tick(1000);
+      // default action will eventually trigger this.
+      expect(this.$el.find('.context-buttons').length).to.equal(1);
+    });
 
+    it('item link triggered', function() {
+      define('dummytestaction', ['backbone'], function(Backbone) {
+        var Actions = Backbone.Model.extend({
+          initialize: function(options) {
+            this.options = options;
+            this.app = options.app;
+          },
+          handleOther: function(e) {
+            e.preventDefault();
+            var self = this;
+            self.app.setStatus('Status: not a folder');
+          }
+        });
+        return Actions;
+      });
+
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      var item = this.$el.find('.itemRow').eq(1);
+      $('.title a.manage', item).trigger('click');
+      this.clock.tick(1000);
+      // status will be set as defined.
+      expect($('.status').text()).to.contain('Status: not a folder');
+    });
+
+  });
 
 });

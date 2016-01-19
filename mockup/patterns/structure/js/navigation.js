@@ -42,6 +42,14 @@ define([
       var self = this;
       self.openUrl(self.getSelectedBaseUrl() + '/edit');
     },
+    folderClicked: function(e) {
+      e.preventDefault();
+      // handler for folder, go down path and show in contents window.
+      var self = this;
+      self.app.queryHelper.currentPath = self.model.attributes.path;
+      // also switch to fix page in batch
+      self.app.collection.goTo(self.app.collection.information.firstPage);
+    },
   });
 
   return Navigation;

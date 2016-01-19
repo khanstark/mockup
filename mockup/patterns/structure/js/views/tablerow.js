@@ -72,28 +72,23 @@ define([
       $('.actionmenu-container', self.$el).append(self.menu.render().el);
       return this;
     },
-    openClicked: function(e) {
-      var nav = new Nav({
-        app: this.app,
-        model: this.model
-      });
-      nav.openClicked(e);
-    },
     itemClicked: function(e) {
-      e.preventDefault();
       /* check if this should just be opened in new window */
+      var self = this;
       var keyEvent = this.app.keyEvent;
-      if (keyEvent && keyEvent.ctrlKey) {
-        this.openClicked(e);
-      } else if (this.model.attributes['is_folderish']) { // jshint ignore:line
-        // it's a folder, go down path and show in contents window.
-        this.app.queryHelper.currentPath = this.model.attributes.path;
-        // also switch to fix page in batch
-        var collection = this.app.collection;
-        collection.goTo(collection.information.firstPage);
+      if (keyEvent && keyEvent.ctrlKey ||
+          !(this.model.attributes['is_folderish'])) {
+        // middle/ctrl-click or not a folder content
+        key = 'other';
       } else {
-        this.openClicked(e);
+        key = 'folder';
       }
+      var item = self.app.options.tableRowItemAction[key];
+      var lib = item[0];
+      var key = item[1];
+      require([lib], function(Lib) {
+        new Lib(self)[key](e);
+      });
     },
     itemSelected: function() {
       var checkbox = this.$('input')[0];

@@ -95,6 +95,16 @@ define([
         'last_comment_date': 'Last comment date',
         'total_comments': 'Total comments'
       },
+
+      // action triggered for the primary link for each table row.
+      tableRowItemAction: null,
+      _default_tableRowItemAction: {
+        folder: [
+          'mockup-patterns-structure-url/js/navigation', 'folderClicked'],
+        other: [
+          'mockup-patterns-structure-url/js/navigation', 'openClicked']
+      },
+
       momentFormat: 'relative',
       rearrange: {
         properties: {
@@ -151,12 +161,20 @@ define([
         May want to consider moving the _default_* values out of the
         options object.
       */
-      var checkDefaults = [
+      var replaceDefaults = [
           'attributes', 'activeColumns', 'availableColumns', 'buttons'];
-      _.each(checkDefaults, function(idx) {
+      _.each(replaceDefaults, function(idx) {
         if (self.options[idx] === null) {
           self.options[idx] = self.options['_default_' + idx];
         }
+      });
+
+      var mergeDefaults = ['tableRowItemAction'];
+      _.each(mergeDefaults, function(idx) {
+        var old = self.options[idx];
+        self.options[idx] = $.extend(
+          false, self.options['_default_' + idx], old
+        );
       });
 
       self.browsing = true; // so all queries will be correct with QueryHelper
