@@ -84,6 +84,10 @@ define([
         key = 'folder';
       }
       var item = self.app.options.tableRowItemAction[key];
+      if (!item) {
+        return null;
+      }
+      e.preventDefault();
       var lib = item[0];
       var key = item[1];
       require([lib], function(Lib) {
