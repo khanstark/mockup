@@ -607,7 +607,7 @@ define([
       registry.scan(this.$el);
       this.clock.tick(1000);
       // folder
-      var folder = $(this.$el.find('.itemRow')[0]);
+      var folder = this.$el.find('.itemRow').eq(0);
       expect(folder.data().id).to.equal('folder');
       expect($('.actionmenu ul li a', folder).length).to.equal(6);
       // no pasting (see next test
@@ -624,7 +624,7 @@ define([
       registry.scan(this.$el);
       this.clock.tick(1000);
 
-      var item = $(this.$el.find('.itemRow')[10]);
+      var item = this.$el.find('.itemRow').eq(10);
       expect(item.data().id).to.equal('item9');
       expect($('.actionmenu ul li a', item).length).to.equal(6);
       // cannot select all
@@ -645,7 +645,7 @@ define([
       registry.scan(this.$el);
       this.clock.tick(1000);
       // top item
-      var item0 = $(this.$el.find('.itemRow')[0]);
+      var item0 = this.$el.find('.itemRow').eq(0);
       expect(item0.data().id).to.equal('folder');
       expect($('.actionmenu ul li a', item0).length).to.equal(7);
       expect($('.actionmenu ul li.pasteItem', item0).text()).to.equal('Paste');
@@ -659,9 +659,9 @@ define([
       registry.scan(this.$el);
       this.clock.tick(1000);
       // top item
-      var item0 = $(this.$el.find('.itemRow')[0]);
+      var item0 = this.$el.find('.itemRow').eq(0);
       expect(item0.data().id).to.equal('folder');
-      var item10 = $(this.$el.find('.itemRow')[10]);
+      var item10 = this.$el.find('.itemRow').eq(10);
       expect(item10.data().id).to.equal('item9');
 
       expect($('.actionmenu ul li.move-top', item10).text()).to.equal(
@@ -682,9 +682,9 @@ define([
       registry.scan(this.$el);
       this.clock.tick(1000);
       var pattern = this.$el.data('patternStructure');
-      var item = $(this.$el.find('.itemRow')[10]);
+      var item = this.$el.find('.itemRow').eq(10);
       expect(item.data().id).to.equal('item9');
-      $('.title a', item).trigger('click');
+      $('.title a.manage', item).trigger('click');
       this.clock.tick(1000);
       expect(dummyWindow.location).to.equal('http://localhost:8081/item9/view');
 
@@ -1085,7 +1085,7 @@ define([
       registry.scan(this.$el);
       this.clock.tick(1000);
       // top item
-      var item = $(this.$el.find('.itemRow')[1]);
+      var item = this.$el.find('.itemRow').eq(1);
       expect(item.data().id).to.equal('item0');
       // Since no moveUrl, no move-top or move-bottom.
       expect(item.find('.actionmenu .move-top a').length).to.equal(0);
@@ -1188,7 +1188,7 @@ define([
       registry.scan(this.$el);
       this.clock.tick(1000);
       // top item
-      var item = $(this.$el.find('.itemRow')[1]);
+      var item = this.$el.find('.itemRow').eq(1);
       expect(item.data().id).to.equal('item1');
       // Since no moveUrl, no move-top or move-bottom.
       expect(item.find('.actionmenu * a').length).to.equal(0);
@@ -1304,7 +1304,7 @@ define([
     it('test itemRow actionmenu no options.', function() {
       registry.scan(this.$el);
       this.clock.tick(1000);
-      var item = $(this.$el.find('.itemRow')[0]);
+      var item = this.$el.find('.itemRow').eq(0);
       // Check for complete new options
       expect($('.actionmenu * a', item).length).to.equal(2);
       expect($('.actionmenu .action1 a', item).text()).to.equal('Option 1');
