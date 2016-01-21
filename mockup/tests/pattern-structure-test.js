@@ -153,6 +153,9 @@ define([
         });
         return Actions;
       });
+      // use it to make it available synchronously.
+      require(['dummytestactionmenu'], function(){});
+      this.clock.tick(500);
 
       var model = new Result({
           "is_folderish": true,
@@ -197,6 +200,9 @@ define([
         });
         return Actions;
       });
+      // use it to make it available synchronously.
+      require(['dummytestactionmenu'], function(){});
+      this.clock.tick(500);
 
       var model = new Result({
           "is_folderish": true,
@@ -1336,6 +1342,8 @@ define([
         });
         return Actions;
       });
+      // preload the defined module to allow it be used synchronously.
+      require(['dummytestaction'], function(){});
 
       registry.scan(this.$el);
       this.clock.tick(1000);

@@ -76,6 +76,7 @@ define([
       /* check if this should just be opened in new window */
       var self = this;
       var keyEvent = this.app.keyEvent;
+      var key;
       if (keyEvent && keyEvent.ctrlKey ||
           !(this.model.attributes['is_folderish'])) {
         // middle/ctrl-click or not a folder content
@@ -83,16 +84,17 @@ define([
       } else {
         key = 'folder';
       }
-      var item = self.app.options.tableRowItemAction[key];
-      if (!item) {
+      var definition = self.app.options.tableRowItemAction[key] || [];
+      // a bit of a duplicate from actionmenu.js, but this is calling
+      // directly.
+      var libName = definition[0],
+          method = definition[1];
+      if (!((typeof libName === 'string') && (typeof key === 'string'))) {
         return null;
       }
-      e.preventDefault();
-      var lib = item[0];
-      var key = item[1];
-      require([lib], function(Lib) {
-        new Lib(self)[key](e);
-      });
+      var clsLib = require(libName);
+      var lib = new clsLib(self);
+      return lib[method] && lib[method](e);
     },
     itemSelected: function() {
       var checkbox = this.$('input')[0];

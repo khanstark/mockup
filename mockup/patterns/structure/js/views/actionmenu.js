@@ -76,12 +76,17 @@ define([
 
     eventConstructor: function(definition) {
       var self = this;
-      var lib = definition[0],
+      var libName = definition[0],
           key = definition[1];
-      var doEvent = function (e) {
-        require([lib], function(Lib) {
-          new Lib(self)[key](e);
-        });
+
+      if (!((typeof libName === 'string') && (typeof key === 'string'))) {
+        return false;
+      }
+
+      var doEvent = function(e) {
+        var libCls = require(libName);
+        var lib = new libCls(self)
+        return lib[key] && lib[key](e);
       };
       return doEvent;
     },
@@ -90,7 +95,10 @@ define([
       var self = this;
       var result = {};
       _.each(self.menuOptions, function(menuOption, idx) {
-        result['click .' + idx + ' a'] = self.eventConstructor(menuOption);
+        var e = self.eventConstructor(menuOption);
+        if (e) {
+          result['click .' + idx + ' a'] = e;
+        }
       });
       return result;
     },
