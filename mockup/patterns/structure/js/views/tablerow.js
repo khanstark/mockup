@@ -77,12 +77,14 @@ define([
       var self = this;
       var keyEvent = this.app.keyEvent;
       var key;
+      // Resolve the correct handler based on these keys.
+      // Default handlers live in ../navigation.js (bound to Nav)
       if (keyEvent && keyEvent.ctrlKey ||
           !(this.model.attributes['is_folderish'])) {
         // middle/ctrl-click or not a folder content
-        key = 'other';
+        key = 'other';  // default Nav.openClicked
       } else {
-        key = 'folder';
+        key = 'folder';  // default Nav.folderClicked
       }
       var definition = self.app.options.tableRowItemAction[key] || [];
       // a bit of a duplicate from actionmenu.js, but this is calling

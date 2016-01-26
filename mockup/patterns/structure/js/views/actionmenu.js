@@ -77,16 +77,16 @@ define([
     eventConstructor: function(definition) {
       var self = this;
       var libName = definition[0],
-          key = definition[1];
+          method = definition[1];
 
-      if (!((typeof libName === 'string') && (typeof key === 'string'))) {
+      if (!((typeof libName === 'string') && (typeof method === 'string'))) {
         return false;
       }
 
       var doEvent = function(e) {
         var libCls = require(libName);
         var lib = new libCls(self)
-        return lib[key] && lib[key](e);
+        return lib[method] && lib[method](e);
       };
       return doEvent;
     },
