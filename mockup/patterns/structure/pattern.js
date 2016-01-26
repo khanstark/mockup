@@ -105,6 +105,9 @@ define([
           'mockup-patterns-structure-url/js/navigation', 'openClicked']
       },
 
+      collectionConstructor:
+        'mockup-patterns-structure-url/js/collections/result',
+
       momentFormat: 'relative',
       rearrange: {
         properties: {
@@ -179,14 +182,11 @@ define([
 
       self.browsing = true; // so all queries will be correct with QueryHelper
       self.options.collectionUrl = self.options.vocabularyUrl;
-      self.options.queryHelper = new utils.QueryHelper(
-        $.extend(true, {}, self.options, {pattern: self}));
+      self.options.pattern = self;
 
-      // check and see if a hash is provided for initial path
-      if(window.location.hash.substring(0, 2) === '#/'){
-        self.options.queryHelper.currentPath = window.location.hash.substring(1);
-      }
-      delete self.options.attributes; // not compatible with backbone
+      // the ``attributes`` options key is not compatible with backbone
+      self.options.attributes_ = self.options.attributes;
+      delete self.options.attributes;
 
       self.view = new AppView(self.options);
       self.$el.append(self.view.render().$el);

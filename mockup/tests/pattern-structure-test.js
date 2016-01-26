@@ -72,6 +72,8 @@ define([
         'availableColumns': [],
         'indexOptionsUrl': '',
         'setDefaultPageUrl': '',
+        'collectionConstructor':
+          'mockup-patterns-structure-url/js/collections/result',
       });
       this.app.render();
     });
