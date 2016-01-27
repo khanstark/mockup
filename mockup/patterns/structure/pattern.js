@@ -184,8 +184,10 @@ define([
       self.options.collectionUrl = self.options.vocabularyUrl;
       self.options.pattern = self;
 
-      // the ``attributes`` options key is not compatible with backbone
-      self.options.attributes_ = self.options.attributes;
+      // the ``attributes`` options key is not compatible with backbone,
+      // but queryHelper that will be constructed by the default
+      // ResultCollection will expect this to be passed into it.
+      self.options.queryHelperAttributes = self.options.attributes;
       delete self.options.attributes;
 
       self.view = new AppView(self.options);

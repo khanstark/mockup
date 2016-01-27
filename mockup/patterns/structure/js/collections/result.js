@@ -16,7 +16,7 @@ define([
 
       this.queryHelper = Utils.QueryHelper(
         $.extend(true, {}, this.view.options, {
-          attributes: this.view.options.attributes_}));
+          attributes: this.view.options.queryHelperAttributes}));
 
       this.queryParser = function(options) {
         var self = this;
