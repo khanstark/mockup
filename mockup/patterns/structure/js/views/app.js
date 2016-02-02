@@ -161,7 +161,7 @@ define([
           if(!path){
             path = '/';
           }
-          self.collection.setCurrentPath(path);
+          self.setCurrentPath(path);
           $('body').trigger('structure-url-changed', path);
           // since this next call causes state to be pushed...
           self.doNotPushState = true;
