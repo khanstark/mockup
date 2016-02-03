@@ -65,6 +65,7 @@ define([
         self.folderMenu = new ActionMenu({
           app: self.app,
           model: self.folderModel,
+          menuOptions: self.app.menuOptions,
           header: _t('Actions on current folder'),
           canMove: false
         });
