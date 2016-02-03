@@ -1357,11 +1357,19 @@ define([
         },
         "attributes": [
           'Title', 'getURL'
-        ]
+        ],
+        "pushStateUrl": "http://localhost:8081/traverse_view/{path}",
+        "traverseView": true
       };
 
       this.$el = $('<div class="pat-structure"></div>').attr(
         'data-pat-structure', JSON.stringify(structure)).appendTo('body');
+
+      $('body').off('structure-url-changed').on('structure-url-changed',
+        function (e, path) {
+          structureUrlChangedPath = path;
+        }
+      );
 
       this.server = sinon.fakeServer.create();
       this.server.autoRespond = true;
@@ -1415,13 +1423,17 @@ define([
       });
 
       this.clock = sinon.useFakeTimers();
+      this.sandbox = sinon.sandbox.create();
+      this.sandbox.stub(window, 'history', history);
     });
 
     afterEach(function() {
       requirejs.undef('dummytestaction');
+      this.sandbox.restore();
       this.server.restore();
       this.clock.restore();
       $('body').html('');
+      $('body').off('structure-url-changed');
     });
 
     it('test itemRow actionmenu no options.', function() {
@@ -1469,6 +1481,24 @@ define([
       this.clock.tick(1000);
       // status will be set as defined.
       expect($('.status').text()).to.contain('Status: not a folder');
+    });
+
+    it('test navigate to folder push states', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      var pattern = this.$el.data('patternStructure');
+      var item = this.$el.find('.itemRow').eq(0);
+      expect(item.data().id).to.equal('folder');
+      $('.title a.manage', item).trigger('click');
+      this.clock.tick(1000);
+      expect(history.pushed.url).to.equal(
+        'http://localhost:8081/traverse_view/folder');
+      expect(structureUrlChangedPath).to.eql('');
+
+      $('.fc-breadcrumbs a', this.$el).eq(0).trigger('click');
+      this.clock.tick(1000);
+      expect(history.pushed.url).to.equal(
+        'http://localhost:8081/traverse_view');
     });
 
   });

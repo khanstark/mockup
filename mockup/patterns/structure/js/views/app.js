@@ -125,20 +125,49 @@ define([
         self.loading.show();
         self.updateButtons();
 
-        /* maintain history here */
-        if(self.options.urlStructure && window.history && window.history.pushState){
-          if (!self.doNotPushState){
-            var path = self.getCurrentPath();
-            if(path === '/'){
-              path = '';
-            }
-            var url = self.options.urlStructure.base + path + self.options.urlStructure.appended;
-            window.history.pushState(null, null, url);
-            $('body').trigger('structure-url-changed', path);
-          }else{
-            self.doNotPushState = false;
-          }
+        // the remaining calls are related to window.pushstate.
+        // abort if feature unavailable.
+        if (!(window.history && window.history.pushState)) {
+          return
         }
+
+        // undo the flag set by popState to prevent the push state
+        // from being triggered here, and early abort out of the
+        // function to not execute the folowing pushState logic.
+        if (self.doNotPushState) {
+          self.doNotPushState = false;
+          return
+        }
+
+        var path = self.getCurrentPath();
+        if (path === '/'){
+          path = '';
+        }
+        /* maintain history here */
+        if (self.options.pushStateUrl) {
+          // permit an extra slash in pattern, but strip that if there
+          // as path always will be prefixed with a `/`
+          var pushStateUrl = self.options.pushStateUrl.replace(
+            '/{path}', '{path}');
+          var url = pushStateUrl.replace('{path}', path);
+          window.history.pushState(null, null, url);
+        } else if (self.options.urlStructure) {
+          // fallback to urlStructure specification
+          var url = self.options.urlStructure.base + path + self.options.urlStructure.appended;
+          window.history.pushState(null, null, url);
+        }
+
+        if (self.options.traverseView) {
+          // flag specifies that the context view implements a traverse
+          // view (i.e. IPublishTraverse) and the path is a virtual path
+          // of some kind - use the base object instead for that by not
+          // specifying a path.
+          path = '';
+          // TODO figure out whether the following event after this is
+          // needed at all.
+        }
+        $('body').trigger('structure-url-changed', path);
+
       });
 
       if (self.options.urlStructure && utils.featureSupport.history()){
