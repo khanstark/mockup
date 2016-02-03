@@ -16,6 +16,15 @@ define([
   $.fx.off = true;
 
   var dummyWindow = {};
+  var history = {
+    'pushState': function(data, title, url) {
+      history.pushed = {
+        data: data,
+        title: title,
+        url: url
+      };
+    }
+  };
 
   function getQueryVariable(url, variable) {
     var query = url.split('?')[1];
@@ -307,7 +316,11 @@ define([
         "moveUrl": "/moveitem",
         "indexOptionsUrl": "/tests/json/queryStringCriteria.json",
         "contextInfoUrl": "{path}/contextInfo",
-        "setDefaultPageUrl": "/setDefaultPage"
+        "setDefaultPageUrl": "/setDefaultPage",
+        "urlStructure": {
+          "base": "http://localhost:8081",
+          "appended": "/folder_contents"
+        }
       };
 
       this.$el = $('<div class="pat-structure"></div>').attr(
@@ -418,12 +431,16 @@ define([
       sinon.stub(utils, 'getWindow', function() {
         return dummyWindow;
       });
+
+      this.sandbox = sinon.sandbox.create();
+      this.sandbox.stub(window, 'history', history);
     });
 
     afterEach(function() {
       extraDataJsonItem = null;
       this.server.restore();
       this.clock.restore();
+      this.sandbox.restore();
       $('body').html('');
       utils.getWindow.restore();
     });
@@ -770,6 +787,22 @@ define([
       expect(dummyWindow.location).to.equal('http://localhost:8081/item9/edit');
     });
 
+    it('test navigate to folder push states', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      var pattern = this.$el.data('patternStructure');
+      var item = this.$el.find('.itemRow').eq(0);
+      expect(item.data().id).to.equal('folder');
+      $('.title a.manage', item).trigger('click');
+      this.clock.tick(1000);
+      expect(history.pushed.url).to.equal(
+        'http://localhost:8081/folder/folder_contents');
+      $('.fc-breadcrumbs a', this.$el).eq(0).trigger('click');
+      this.clock.tick(1000);
+      expect(history.pushed.url).to.equal(
+        'http://localhost:8081/folder_contents');
+    });
+
   });
 
   /* ==========================
@@ -841,11 +874,14 @@ define([
         return dummyWindow;
       });
 
+      this.sandbox = sinon.sandbox.create();
+      this.sandbox.stub(window, 'history', history);
     });
 
     afterEach(function() {
       this.server.restore();
       this.clock.restore();
+      this.sandbox.restore();
       $('body').html('');
       utils.getWindow.restore();
     });
