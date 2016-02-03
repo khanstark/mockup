@@ -15,6 +15,7 @@ define([
   window.mocha.setup('bdd');
   $.fx.off = true;
 
+  var structureUrlChangedPath = '';
   var dummyWindow = {};
   var history = {
     'pushState': function(data, title, url) {
@@ -328,6 +329,12 @@ define([
 
       this.server = sinon.fakeServer.create();
       this.server.autoRespond = true;
+
+      $('body').off('structure-url-changed').on('structure-url-changed',
+        function (e, path) {
+          structureUrlChangedPath = path;
+        }
+      );
 
       this.server.respondWith('GET', /data.json/, function (xhr, id) {
         var batch = JSON.parse(getQueryVariable(xhr.url, 'batch'));
@@ -797,6 +804,8 @@ define([
       this.clock.tick(1000);
       expect(history.pushed.url).to.equal(
         'http://localhost:8081/folder/folder_contents');
+      expect(structureUrlChangedPath).to.eql('/folder');
+
       $('.fc-breadcrumbs a', this.$el).eq(0).trigger('click');
       this.clock.tick(1000);
       expect(history.pushed.url).to.equal(
@@ -884,6 +893,7 @@ define([
       this.sandbox.restore();
       $('body').html('');
       utils.getWindow.restore();
+      $('body').off('structure-url-changed');
     });
 
     it('initialize', function() {
