@@ -585,7 +585,8 @@ define([
       $item.trigger('change');
       this.clock.tick(1000);
       expect(this.$el.find('#btn-selected-items').html()).to.contain('16');
-
+      expect($('table tbody .selection input:checked', this.$el).length
+        ).to.equal(16);
     });
 
     it('test unselect all', function() {
@@ -596,10 +597,15 @@ define([
       $item.trigger('change');
       this.clock.tick(1000);
       expect(this.$el.find('#btn-selected-items').html()).to.contain('16');
+      expect($('table tbody .selection input:checked', this.$el).length
+        ).to.equal(16);
+
       $item[0].checked = false;
       $item.trigger('change');
       this.clock.tick(1000);
       expect(this.$el.find('#btn-selected-items').html()).to.contain('0');
+      expect($('table tbody .selection input:checked', this.$el).length
+        ).to.equal(0);
     });
 
     it('test current folder buttons do not show on root', function() {
@@ -1633,6 +1639,117 @@ define([
         'Document 0');
       expect($content_row1.find('td .icon-group-right a').attr('href')
         ).to.equal('http://localhost:8081/item0/item_view');
+    });
+
+  });
+
+  /* ==========================
+   TEST: Structure data insufficient fields
+  ========================== */
+  describe('Structure data insufficient fields', function() {
+    beforeEach(function() {
+      // clear cookie setting
+      $.removeCookie('_fc_perPage');
+      $.removeCookie('_fc_activeColumnsCustom');
+
+      var structure = {
+        "vocabularyUrl": "/data.json",
+        "uploadUrl": "/upload",
+        "moveUrl": "/moveitem",
+        "indexOptionsUrl": "/tests/json/queryStringCriteria.json",
+        "contextInfoUrl": "{path}/contextInfo",
+        "setDefaultPageUrl": "/setDefaultPage",
+        "urlStructure": {
+          "base": "http://localhost:8081",
+          "appended": "/folder_contents"
+        }
+      };
+
+      this.$el = $('<div class="pat-structure"></div>').attr(
+        'data-pat-structure', JSON.stringify(structure)).appendTo('body');
+
+      this.server = sinon.fakeServer.create();
+      this.server.autoRespond = true;
+
+      this.server.respondWith('GET', /data.json/, function (xhr, id) {
+        var batch = JSON.parse(getQueryVariable(xhr.url, 'batch'));
+        var start = 0;
+        var end = 15;
+        if (batch) {
+          start = (batch.page - 1) * batch.size;
+          end = start + batch.size;
+        }
+        var items = [{
+          getURL: 'http://localhost:8081/folder',
+          Title: 'Folder',
+          'is_folderish': true,
+          path: '/folder',
+          UID: 'folder',
+          id: 'folder'
+        }, {
+          getURL: 'http://localhost:8081/item',
+          Title: 'Item',
+          'is_folderish': false,
+          path: '/item',
+          // omitting id but provide UID instead for this test
+          UID: 'item'
+        }];
+
+        xhr.respond(200, {'Content-Type': 'application/json'}, JSON.stringify({
+          total: 1,
+          results: items
+        }));
+      });
+      this.server.respondWith('GET', /contextInfo/, function (xhr, id) {
+        var data = {
+          addButtons: []
+        };
+        if (xhr.url.indexOf('folder') !== -1){
+          data.object = {
+            UID: '123sdfasdfFolder',
+            getURL: 'http://localhost:8081/folder',
+            path: '/folder',
+            portal_type: 'Folder',
+            Description: 'folder',
+            Title: 'Folder',
+            'review_state': 'published',
+            'is_folderish': true,
+            Subject: [],
+            id: 'folder'
+          };
+        }
+        xhr.respond(200, { 'Content-Type': 'application/json' }, JSON.stringify(data));
+      });
+
+      this.clock = sinon.useFakeTimers();
+    });
+
+    afterEach(function() {
+      this.server.restore();
+      this.clock.restore();
+      $('body').html('');
+    });
+
+    it('test unselect all', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      var $item = this.$el.find('table th .select-all');
+      $item[0].checked = true;
+      $item.trigger('change');
+      this.clock.tick(1000);
+      expect(this.$el.find('#btn-selected-items').html()).to.contain('2');
+      expect($('table tbody .selection input:checked', this.$el).length
+        ).to.equal(2);
+
+      // XXX passing this test for now with bad data - uncheck cannot
+      // remove items without an id (but with UID specified), so this
+      // item cannot be unselected.
+      $item[0].checked = false;
+      $item.trigger('change');
+      this.clock.tick(1000);
+      expect(this.$el.find('#btn-selected-items').html()).to.contain('1');
+      expect($('table tbody .selection input:checked', this.$el).length
+        ).to.equal(1);
     });
 
   });
