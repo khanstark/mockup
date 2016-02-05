@@ -1346,13 +1346,13 @@ define([
         "buttons": [],
         "menuOptions": {
           'action1': [
-            'dummytestmodule',
+            'dummytestaction',
             'option1',
             '#',
             'Option 1',
           ],
           'action2': [
-            'dummytestmodule',
+            'dummytestaction',
             'option2',
             '#',
             'Option 2',
@@ -1442,7 +1442,7 @@ define([
       $('body').off('structure-url-changed');
     });
 
-    it('test itemRow actionmenu no options.', function() {
+    it('test itemRow actionmenu custom options.', function() {
       registry.scan(this.$el);
       this.clock.tick(1000);
       var item = this.$el.find('.itemRow').eq(0);
@@ -1450,6 +1450,39 @@ define([
       expect($('.actionmenu * a', item).length).to.equal(2);
       expect($('.actionmenu .action1 a', item).text()).to.equal('Option 1');
       expect($('.actionmenu .action2 a', item).text()).to.equal('Option 2');
+
+      define('dummytestaction', ['backbone'], function(Backbone) {
+        var Actions = Backbone.Model.extend({
+          initialize: function(options) {
+            this.options = options;
+            this.app = options.app;
+          },
+          option1: function(e) {
+            e.preventDefault();
+            var self = this;
+            self.app.setStatus('Status: option1 selected');
+          },
+          option2: function(e) {
+            e.preventDefault();
+            var self = this;
+            self.app.setStatus('Status: option2 selected');
+          }
+        });
+        return Actions;
+      });
+      // preload the defined module to allow it be used synchronously.
+      require(['dummytestaction'], function(){});
+      this.clock.tick(1000);
+
+      $('.actionmenu .action1 a', item).trigger('click');
+      this.clock.tick(1000);
+      // status will be set as defined.
+      expect($('.status').text()).to.contain('Status: option1 selected');
+
+      $('.actionmenu .action2 a', item).trigger('click');
+      this.clock.tick(1000);
+      // status will be set as defined.
+      expect($('.status').text()).to.contain('Status: option2 selected');
     });
 
     it('folder link not overriden', function() {
