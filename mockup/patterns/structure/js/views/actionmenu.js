@@ -6,73 +6,22 @@ define([
   'mockup-patterns-structure-url/js/models/result',
   'mockup-utils',
   'mockup-patterns-structure-url/js/actions',
+  'mockup-patterns-structure-url/js/actionmenu',
   'text!mockup-patterns-structure-url/templates/actionmenu.xml',
   'translate',
   'bootstrap-dropdown'
-], function($, _, Backbone, BaseView, Result, utils, Actions, ActionMenuTemplate, _t) {
+], function($, _, Backbone, BaseView, Result, utils, Actions, ActionMenu,
+            ActionMenuTemplate, _t) {
   'use strict';
 
-  var ActionMenu = BaseView.extend({
+  var ActionMenuView = BaseView.extend({
     className: 'btn-group actionmenu',
     template: _.template(ActionMenuTemplate),
 
+    // Static menu options
     menuOptions: null,
-    _default_menuOptions: {
-      'cutItem': [
-        'mockup-patterns-structure-url/js/actions',
-        'cutClicked',
-        '#',
-        'Cut',
-      ],
-      'copyItem': [
-        'mockup-patterns-structure-url/js/actions',
-        'copyClicked',
-        '#',
-        'Copy'
-      ],
-      'pasteItem': [
-        'mockup-patterns-structure-url/js/actions',
-        'pasteClicked',
-        '#',
-        'Paste'
-      ],
-      'move-top': [
-        'mockup-patterns-structure-url/js/actions',
-        'moveTopClicked',
-        '#',
-        'Move to top of folder'
-      ],
-      'move-bottom': [
-        'mockup-patterns-structure-url/js/actions',
-        'moveBottomClicked',
-        '#',
-        'Move to bottom of folder'
-      ],
-      'set-default-page': [
-        'mockup-patterns-structure-url/js/actions',
-        'setDefaultPageClicked',
-        '#',
-        'Set as default page'
-      ],
-      'selectAll': [
-        'mockup-patterns-structure-url/js/actions',
-        'selectAll',
-        '#',
-        'Select all contained items'
-      ],
-      'openItem': [
-        'mockup-patterns-structure-url/js/navigation',
-        'openClicked',
-        '#',
-        'Open'
-      ],
-      'editItem': [
-        'mockup-patterns-structure-url/js/navigation',
-        'editClicked',
-        '#',
-        'Edit'
-      ],
-    },
+    // Dynamic menu options
+    menuGenerator: 'mockup-patterns-structure-url/js/actionmenu',
 
     eventConstructor: function(definition) {
       var self = this;
@@ -104,41 +53,18 @@ define([
     },
 
     initialize: function(options) {
-      this.options = options;
-      this.app = options.app;
-      this.model = options.model;
-      this.selectedCollection = this.app.selectedCollection;
+      var self = this;
+      BaseView.prototype.initialize.apply(self, [options]);
+      self.options = options;
+      self.selectedCollection = self.app.selectedCollection;
 
-      var menuOptions = this.options['menuOptions'] || null;
-
-      if (menuOptions === null) {
-        /*
-          directly providing and manipulating the defaults as the values
-          are not explicitly overridden - management of their visibility
-          will be computed here, instead of inside the template.
-
-          Manipulation/construction of menuOptions should not be done
-          here.
-        */
-        this.menuOptions = _.clone(this._default_menuOptions);
-        if (!this.app.pasteAllowed || !this.model.attributes.is_folderish) {
-          delete this.menuOptions.pasteItem;
-        }
-        if (this.app.inQueryMode() || options.canMove === false) {
-          delete this.menuOptions['move-top'];
-          delete this.menuOptions['move-bottom'];
-        }
-        if (this.model.attributes.is_folderish || !this.app.setDefaultPageUrl) {
-          delete this.menuOptions['set-default-page'];
-        }
-        if (!this.model.attributes.is_folderish) {
-          delete this.menuOptions['selectAll'];
-        }
-        if (!this.options.header) {
-          delete this.menuOptions['openItem'];
-        }
-      } else {
-        this.menuOptions = menuOptions;
+      // Then acquire the constructor method if specified, and
+      var menuGenerator = self.options.menuGenerator || self.menuGenerator;
+      if (menuGenerator) {
+        var menuGen = require(menuGenerator);
+        // override those options here.  All definition done here so
+        // that self.events() will return the right things.
+        self.menuOptions = menuGen(self);
       }
     },
     render: function() {
@@ -164,5 +90,5 @@ define([
     }
   });
 
-  return ActionMenu;
+  return ActionMenuView;
 });

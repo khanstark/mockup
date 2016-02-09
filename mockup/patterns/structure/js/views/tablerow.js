@@ -7,7 +7,7 @@ define([
   'text!mockup-patterns-structure-url/templates/tablerow.xml',
   'mockup-utils',
   'translate'
-], function($, _, Backbone, Nav, ActionMenu, TableRowTemplate, utils, _t) {
+], function($, _, Backbone, Nav, ActionMenuView, TableRowTemplate, utils, _t) {
   'use strict';
 
   var TableRowView = Backbone.View.extend({
@@ -72,7 +72,7 @@ define([
         but at the same time there needs to be some kind of way to
         facilitate the association between the two.
       */
-      self.menu = new ActionMenu({
+      self.menu = new ActionMenuView({
         app: self.app,
         model: self.model,
         menuOptions: self.app.menuOptions,

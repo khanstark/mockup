@@ -49,6 +49,7 @@ define([
       contextInfoUrl: null, // for add new dropdown and other info
       setDefaultPageUrl: null,
       menuOptions: null, // default action menu options per item.
+      menuGenerator: null,  // default action menu generator
       backdropSelector: '.plone-modal', // Element upon which to apply backdrops used for popovers
 
       activeColumnsCookie: 'activeColumns',

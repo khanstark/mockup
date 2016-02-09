@@ -8,7 +8,7 @@ define([
   'mockup-patterns-structure-url/js/models/result',
   'mockup-utils',
   'sinon',
-], function(expect, $, registry, Structure, ActionMenu, AppView, Result,
+], function(expect, $, registry, Structure, ActionMenuView, AppView, Result,
             utils, sinon) {
   'use strict';
 
@@ -140,6 +140,7 @@ define([
     afterEach(function() {
       this.clock.restore();
       this.server.restore();
+      requirejs.undef('dummytestactions');
       requirejs.undef('dummytestactionmenu');
     });
 
@@ -150,7 +151,7 @@ define([
           "review_state": "published"
       });
 
-      var menu = new ActionMenu({
+      var menu = new ActionMenuView({
         app: this.app,
         model: model,
         header: 'Menu Header'
@@ -176,7 +177,7 @@ define([
           "review_state": "published"
       });
 
-      var menu = new ActionMenu({
+      var menu = new ActionMenuView({
         app: this.app,
         model: model,
         menuOptions: {
@@ -201,7 +202,7 @@ define([
 
     it('custom action menu items and actions.', function() {
       // Define a custom dummy "module"
-      define('dummytestactionmenu', ['backbone'], function(Backbone) {
+      define('dummytestactions', ['backbone'], function(Backbone) {
         var Actions = Backbone.Model.extend({
           initialize: function(options) {
             this.options = options;
@@ -215,7 +216,7 @@ define([
         return Actions;
       });
       // use it to make it available synchronously.
-      require(['dummytestactionmenu'], function(){});
+      require(['dummytestactions'], function(){});
       this.clock.tick(500);
 
       var model = new Result({
@@ -224,12 +225,12 @@ define([
       });
 
       // Make use if that dummy in here.
-      var menu = new ActionMenu({
+      var menu = new ActionMenuView({
         app: this.app,
         model: model,
         menuOptions: {
           'foobar': [
-            'dummytestactionmenu',
+            'dummytestactions',
             'foobarClicked',
             '#',
             'Foo Bar',
@@ -246,9 +247,9 @@ define([
       expect(this.app.$('.status').text()).to.equal('Status: foobar clicked');
     });
 
-    it('custom action menu items and actions.', function() {
+    it('custom action menu actions missing.', function() {
       // Define a custom dummy "module"
-      define('dummytestactionmenu', ['backbone'], function(Backbone) {
+      define('dummytestactions', ['backbone'], function(Backbone) {
         var Actions = Backbone.Model.extend({
           initialize: function(options) {
             this.options = options;
@@ -261,8 +262,9 @@ define([
         });
         return Actions;
       });
+
       // use it to make it available synchronously.
-      require(['dummytestactionmenu'], function(){});
+      require(['dummytestactions'], function(){});
       this.clock.tick(500);
 
       var model = new Result({
@@ -271,18 +273,18 @@ define([
       });
 
       // Make use if that dummy in here.
-      var menu = new ActionMenu({
+      var menu = new ActionMenuView({
         app: this.app,
         model: model,
         menuOptions: {
           'foobar': [
-            'dummytestactionmenu',
+            'dummytestactions',
             'foobarClicked',
             '#',
             'Foo Bar',
           ],
           'barbaz': [
-            'dummytestactionmenu',
+            'dummytestactions',
             'barbazClicked',
             '#',
             'Bar Baz',
@@ -295,6 +297,60 @@ define([
       $('.foobar a', el).click();
       this.clock.tick(500);
       expect(this.app.$('.status').text().trim()).to.equal('');
+    });
+
+    it('custom action menu via generator.', function() {
+      // Define a custom dummy "module"
+      define('dummytestactions', ['backbone'], function(Backbone) {
+        var Actions = Backbone.Model.extend({
+          initialize: function(options) {
+            this.options = options;
+            this.app = options.app;
+          },
+          barbazClicked: function(e) {
+            var self = this;
+            self.app.setStatus('Status: barbaz clicked');
+          }
+        });
+        return Actions;
+      });
+
+      define('dummytestactionmenu', ['backbone'], function(Backbone) {
+        var ActionMenu = function(menu) {
+          return {
+            'barbaz': [
+              'dummytestactions',
+              'barbazClicked',
+              '#',
+              'Bar Baz'
+            ]
+          };
+        };
+        return ActionMenu;
+      });
+      // use them both to make it available synchronously.
+      require(['dummytestactions'], function(){});
+      require(['dummytestactionmenu'], function(){});
+      this.clock.tick(500);
+
+      var model = new Result({
+          "is_folderish": true,
+          "review_state": "published"
+      });
+
+      // Make use if that dummy in here.
+      var menu = new ActionMenuView({
+        app: this.app,
+        model: model,
+        menuGenerator: 'dummytestactionmenu'
+      });
+
+      // Broken/missing action
+      var el = menu.render().el;
+      $('.barbaz a', el).click();
+      this.clock.tick(500);
+      expect(this.app.$('.status').text().trim()).to.equal(
+        'Status: barbaz clicked');
     });
 
   });
