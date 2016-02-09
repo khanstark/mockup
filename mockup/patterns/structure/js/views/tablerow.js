@@ -64,18 +64,11 @@ define([
 
       var canMove = (!(!self.app.options.moveUrl));
 
-      /*
-        TODO figure out how to let users of this and its parent classes
-        pass in custom `menuOptions` per item (`this.model`).  These
-        entries shouldn't (or couldn't) be associated directly to the
-        item at hand (i.e. keeping the actual model object itself pure),
-        but at the same time there needs to be some kind of way to
-        facilitate the association between the two.
-      */
       self.menu = new ActionMenuView({
         app: self.app,
         model: self.model,
         menuOptions: self.app.menuOptions,
+        menuGenerator: self.app.menuGenerator,
         canMove: canMove
       });
 

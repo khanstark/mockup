@@ -66,6 +66,7 @@ define([
           app: self.app,
           model: self.folderModel,
           menuOptions: self.app.menuOptions,
+          menuGenerator: self.app.menuGenerator,
           header: _t('Actions on current folder'),
           canMove: false
         });

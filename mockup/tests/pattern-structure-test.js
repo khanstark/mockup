@@ -1599,6 +1599,189 @@ define([
   });
 
   /* ==========================
+   TEST: Structure action menu generator
+  ========================== */
+  describe('Structure alternative action buttons and links', function() {
+    beforeEach(function() {
+      // clear cookie setting
+      $.removeCookie('_fc_perPage');
+      $.removeCookie('_fc_activeColumnsCustom');
+
+      var structure = {
+        "vocabularyUrl": "/data.json",
+        "indexOptionsUrl": "/tests/json/queryStringCriteria.json",
+        "contextInfoUrl": "{path}/contextInfo",
+        "activeColumnsCookie": "activeColumnsCustom",
+        "activeColumns": [],
+        "availableColumns": {
+          "getURL": "URL",
+        },
+        "buttons": [],
+        "menuGenerator": 'dummyactionmenu',
+        'tableRowItemAction': {
+          'other': ['dummytestaction', 'handleOther'],
+        },
+        "attributes": [
+          'Title', 'getURL'
+        ],
+        "pushStateUrl": "http://localhost:8081/traverse_view/{path}",
+        "traverseView": true
+      };
+
+      this.$el = $('<div class="pat-structure"></div>').attr(
+        'data-pat-structure', JSON.stringify(structure)).appendTo('body');
+
+      $('body').off('structure-url-changed').on('structure-url-changed',
+        function (e, path) {
+          structureUrlChangedPath = path;
+        }
+      );
+
+      this.server = sinon.fakeServer.create();
+      this.server.autoRespond = true;
+
+      this.server.respondWith('GET', /data.json/, function (xhr, id) {
+        var batch = JSON.parse(getQueryVariable(xhr.url, 'batch'));
+        var start = 0;
+        var end = 15;
+        if (batch) {
+          start = (batch.page - 1) * batch.size;
+          end = start + batch.size;
+        }
+        var items = [{
+          getURL: 'http://localhost:8081/folder',
+          Title: 'Folder',
+          'is_folderish': true,
+          path: '/folder',
+          id: 'folder'
+        }, {
+          getURL: 'http://localhost:8081/item',
+          Title: 'Item',
+          'is_folderish': false,
+          path: '/item',
+          id: 'item'
+        }];
+
+        xhr.respond(200, {'Content-Type': 'application/json'}, JSON.stringify({
+          total: 2,
+          results: items
+        }));
+      });
+      this.server.respondWith('GET', /contextInfo/, function (xhr, id) {
+        var data = {
+          addButtons: []
+        };
+        if (xhr.url.indexOf('folder') !== -1){
+          data.object = {
+            UID: '123sdfasdfFolder',
+            getURL: 'http://localhost:8081/folder',
+            path: '/folder',
+            portal_type: 'Folder',
+            Description: 'folder',
+            Title: 'Folder',
+            'review_state': 'published',
+            'is_folderish': true,
+            Subject: [],
+            id: 'folder'
+          };
+        }
+        xhr.respond(200, { 'Content-Type': 'application/json' }, JSON.stringify(data));
+      });
+
+      this.clock = sinon.useFakeTimers();
+      this.sandbox = sinon.sandbox.create();
+      this.sandbox.stub(window, 'history', history);
+    });
+
+    afterEach(function() {
+      requirejs.undef('dummytestaction');
+      requirejs.undef('dummyactionmenu');
+      this.sandbox.restore();
+      this.server.restore();
+      this.clock.restore();
+      $('body').html('');
+      $('body').off('structure-url-changed');
+    });
+
+    it('test itemRow actionmenu generated options from model.', function() {
+      define('dummytestaction', ['backbone'], function(Backbone) {
+        var Actions = Backbone.Model.extend({
+          initialize: function(options) {
+            this.options = options;
+            this.app = options.app;
+          },
+          folderClicker: function(e) {
+            e.preventDefault();
+            var self = this;
+            self.app.setStatus('Status: folder clicked');
+          },
+          itemClicker: function(e) {
+            e.preventDefault();
+            var self = this;
+            self.app.setStatus('Status: item clicked');
+          }
+        });
+        return Actions;
+      });
+
+      define('dummyactionmenu', [], function() {
+        var ActionMenu = function(menu) {
+          if (menu.model.attributes.id === 'item') {
+            return {
+              'itemClicker': [
+                'dummytestaction',
+                'itemClicker',
+                '#',
+                'Item Clicker'
+              ]
+            };
+          } else {
+            return {
+              'folderClicker': [
+                'dummytestaction',
+                'folderClicker',
+                '#',
+                'Folder Clicker'
+              ]
+            };
+          }
+        };
+        return ActionMenu;
+      });
+
+      // preload the defined module to allow it be used synchronously.
+      require(['dummytestaction'], function(){});
+      require(['dummyactionmenu'], function(){});
+
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+
+      var folder = this.$el.find('.itemRow').eq(0);
+
+      // Check for complete new options
+      expect($('.actionmenu * a', folder).length).to.equal(1);
+      expect($('.actionmenu .folderClicker a', folder).text()).to.equal(
+        'Folder Clicker');
+      $('.actionmenu .folderClicker a', folder).trigger('click');
+      this.clock.tick(1000);
+      // status will be set as defined.
+      expect($('.status').text()).to.contain('Status: folder clicked');
+
+      var item = this.$el.find('.itemRow').eq(1);
+      // Check for complete new options
+      expect($('.actionmenu * a', item).length).to.equal(1);
+      expect($('.actionmenu .itemClicker a', item).text()).to.equal(
+        'Item Clicker');
+      $('.actionmenu .itemClicker a', item).trigger('click');
+      this.clock.tick(1000);
+      // status will be set as defined.
+      expect($('.status').text()).to.contain('Status: item clicked');
+
+    });
+
+  });
+
+  /* ==========================
    TEST: Structure custom URLs
   ========================== */
   describe('Structure custom data URLs', function() {
