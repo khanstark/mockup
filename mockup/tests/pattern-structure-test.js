@@ -394,6 +394,11 @@ define([
 
       this.server.respondWith('GET', /data.json/, function (xhr, id) {
         var batch = JSON.parse(getQueryVariable(xhr.url, 'batch'));
+        var query = JSON.parse(getQueryVariable(xhr.url, 'query'));
+        var path = query.criteria[0].v.split(':')[0];
+        if (path === '/') {
+          path = '';
+        }
         var start = 0;
         var end = 15;
         if (batch) {
@@ -402,9 +407,9 @@ define([
         }
         var items = [];
         items.push({
-          UID: '123sdfasdfFolder',
-          getURL: 'http://localhost:8081/folder',
-          path: '/folder',
+          UID: '123sdfasdf' + path + 'Folder',
+          getURL: 'http://localhost:8081' + path + '/folder',
+          path: path + '/folder',
           portal_type: 'Folder',
           Description: 'folder',
           Title: 'Folder',
@@ -415,9 +420,9 @@ define([
         });
         for (var i = start; i < end; i = i + 1) {
           items.push({
-            UID: '123sdfasdf' + i,
-            getURL: 'http://localhost:8081/item' + i,
-            path: '/item' + i,
+            UID: '123sdfasdf' + path + i,
+            getURL: 'http://localhost:8081' + path + '/item' + i,
+            path: path + '/item' + i,
             portal_type: 'Document ' + i,
             Description: 'document',
             Title: 'Document ' + i,
@@ -500,6 +505,11 @@ define([
     });
 
     afterEach(function() {
+      // XXX QueryHelper behaves like a singleton as it pins self
+      // reference to the singleton instance of Utils within the
+      // requirejs framework, so its variables such as currentPath are
+      // persisted.  Reset that here like so:
+      utils.QueryHelper({}).currentPath = '/';
       extraDataJsonItem = null;
       this.server.restore();
       this.clock.restore();
@@ -717,11 +727,11 @@ define([
       registry.scan(this.$el);
       this.clock.tick(1000);
 
-      var $content_row = this.$el.find('table tbody tr').eq(0);
-      expect($content_row.find('td .icon-group-right a').attr('href')
-        ).to.equal('http://localhost:8081/folder/view');
       // Since the top level view doesn't currently provide 'Actions
-      // on current folder' action menu, go down one leve.
+      // on current folder' action menu, go down one level.
+      var $item = this.$el.find('.itemRow').eq(0);
+      $('.title a', $item).trigger('click');
+      this.clock.tick(1000);
 
       var menu = $('.fc-breadcrumbs-container .actionmenu', this.$el);
       var options = $('ul li a', menu);
@@ -862,6 +872,19 @@ define([
       expect(this.$el.find('.order-support .status').html()).to.contain(
         'id=item9');
       // No items actually moved, this is to be implemented server-side.
+    });
+
+    it('test itemRow actionmenu selectAll click', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+
+      var folder = this.$el.find('.itemRow').eq(0);
+      $('.actionmenu ul li.selectAll a', folder).trigger('click');
+      this.clock.tick(1000);
+      expect($('table tbody .selection input:checked', this.$el).length
+        ).to.equal(0);
+      // all items in the folder be populated within the selection well.
+      expect(this.$el.find('#btn-selected-items').html()).to.contain('101');
     });
 
     it('test navigate to item', function() {
