@@ -713,6 +713,29 @@ define([
         ).to.equal('http://localhost:8081/item0/view');
     });
 
+    it('test select all contained item action', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+
+      var $content_row = this.$el.find('table tbody tr').eq(0);
+      expect($content_row.find('td .icon-group-right a').attr('href')
+        ).to.equal('http://localhost:8081/folder/view');
+      // Since the top level view doesn't currently provide 'Actions
+      // on current folder' action menu, go down one leve.
+
+      var menu = $('.fc-breadcrumbs-container .actionmenu', this.$el);
+      var options = $('ul li a', menu);
+      expect(options.length).to.equal(5);
+
+      var selectAll = $('.selectAll a', menu);
+      expect(selectAll.text()).to.eql('Select all contained items');
+      selectAll.trigger('click');
+      this.clock.tick(1000);
+      expect($('table tbody .selection input:checked', this.$el).length
+        ).to.equal(16);
+      expect(this.$el.find('#btn-selected-items').html()).to.contain('101');
+    });
+
     it('test select displayed columns', function() {
       registry.scan(this.$el);
       this.clock.tick(500);
