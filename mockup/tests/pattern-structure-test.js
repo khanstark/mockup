@@ -1779,6 +1779,39 @@ define([
 
     });
 
+    it('test itemRow actionmenu malform generation.', function() {
+      // Potential failure case where user defined ActionMenu function
+      // fails to return a result, causing undefined behavior.
+      define('dummytestaction', ['backbone'], function(Backbone) {
+        // Not testing clicking here so barebone definition here.
+        var Actions = Backbone.Model.extend({
+          initialize: function(options) {
+            this.options = options;
+            this.app = options.app;
+          }
+        });
+        return Actions;
+      });
+
+      define('dummyactionmenu', [], function() {
+        var ActionMenu = function(menu) {
+          // return undefined
+        };
+        return ActionMenu;
+      });
+
+      // preload the defined module to allow it be used synchronously.
+      require(['dummytestaction'], function(){});
+      require(['dummyactionmenu'], function(){});
+
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+
+      // ensure that the items have been properly generated.
+      expect(this.$el.find('.itemRow').length).to.equal(2);
+
+    });
+
   });
 
   /* ==========================

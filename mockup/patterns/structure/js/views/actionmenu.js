@@ -64,7 +64,12 @@ define([
         var menuGen = require(menuGenerator);
         // override those options here.  All definition done here so
         // that self.events() will return the right things.
-        self.menuOptions = menuGen(self);
+        var menuOptions = menuGen(self);
+        if (typeof menuOptions === 'object') {
+          // Only assign this if we got the right basic type.
+          self.menuOptions = menuOptions;
+          // Should warn otherwise.
+        }
       }
     },
     render: function() {
