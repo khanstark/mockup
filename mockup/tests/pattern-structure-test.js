@@ -26,6 +26,7 @@ define([
       };
     }
   };
+  dummyWindow.history = history;
 
   function getQueryVariable(url, variable) {
     var query = url.split('?')[1];
@@ -918,6 +919,20 @@ define([
       this.clock.tick(1000);
       expect(history.pushed.url).to.equal(
         'http://localhost:8081/folder_contents');
+      expect(structureUrlChangedPath).to.eql('');
+    });
+
+    it('test navigate to folder pop states', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      // Need to inject this to the mocked window location attribute the
+      // code will check against.  This url is set before the trigger.
+      dummyWindow.location = {
+          'href': 'http://localhost:8081/folder/folder/folder_contents'};
+      // then trigger off the real window.
+      $(window).trigger('popstate');
+      this.clock.tick(1000);
+      expect(structureUrlChangedPath).to.eql('/folder/folder');
     });
 
   });
@@ -1466,7 +1481,7 @@ define([
         "attributes": [
           'Title', 'getURL'
         ],
-        "pushStateUrl": "http://localhost:8081/traverse_view/{path}",
+        "pushStateUrl": "http://localhost:8081/traverse_view{path}",
         "traverseView": true
       };
 
@@ -1533,10 +1548,15 @@ define([
       this.clock = sinon.useFakeTimers();
       this.sandbox = sinon.sandbox.create();
       this.sandbox.stub(window, 'history', history);
+
+      sinon.stub(utils, 'getWindow', function() {
+        return dummyWindow;
+      });
     });
 
     afterEach(function() {
       requirejs.undef('dummytestaction');
+      utils.getWindow.restore();
       this.sandbox.restore();
       this.server.restore();
       this.clock.restore();
@@ -1640,6 +1660,19 @@ define([
       this.clock.tick(1000);
       expect(history.pushed.url).to.equal(
         'http://localhost:8081/traverse_view');
+    });
+
+    it('test navigate to folder pop states', function() {
+      registry.scan(this.$el);
+      this.clock.tick(1000);
+      // Need to inject this to the mocked window location attribute the
+      // code will check against.  This url is set before the trigger.
+      dummyWindow.location = {
+          'href': 'http://localhost:8081/traverse_view/folder/folder'};
+      // then trigger off the real window.
+      $(window).trigger('popstate');
+      this.clock.tick(1000);
+      expect(structureUrlChangedPath).to.eql('/folder/folder');
     });
 
   });

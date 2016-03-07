@@ -170,22 +170,32 @@ define([
 
       });
 
-      if (self.options.urlStructure && utils.featureSupport.history()){
+      if ((self.options.pushStateUrl || self.options.urlStructure)
+          && utils.featureSupport.history()){
         $(window).bind('popstate', function () {
           /* normalize this url first... */
-          var url = window.location.href;
+          var win = utils.getWindow();
+          var url = win.location.href;
+          var base, appended;
           if(url.indexOf('?') !== -1){
             url = url.split('?')[0];
           }
           if(url.indexOf('#') !== -1){
             url = url.split('#')[0];
           }
+          if (self.options.pushStateUrl) {
+            var tmp = self.options.pushStateUrl.split('{path}');
+            base = tmp[0];
+            appended = tmp[1];
+          } else {
+            base = self.options.urlStructure.base;
+            appended = self.options.urlStructure.appended;
+          }
           // take off the base url
-          var path = url.substring(self.options.urlStructure.base.length);
-          if(path.substring(path.length - self.options.urlStructure.appended.length) ===
-              self.options.urlStructure.appended){
+          var path = url.substring(base.length);
+          if(path.substring(path.length - appended.length) === appended){
             /* check that it ends with appended value */
-            path = path.substring(0, path.length - self.options.urlStructure.appended.length);
+            path = path.substring(0, path.length - appended.length);
           }
           if(!path){
             path = '/';
