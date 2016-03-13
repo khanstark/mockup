@@ -1,10 +1,8 @@
 define([
   'jquery',
-  'backbone',
-  'underscore',
   'mockup-ui-url/views/button',
   'text!mockup-patterns-structure-url/templates/selection_button.xml'
-], function($, Backbone, _, ButtonView, tplButton) {
+], function($, ButtonView, tplButton) {
   'use strict';
 
   var SelectionButton = ButtonView.extend({

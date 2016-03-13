@@ -27,12 +27,7 @@ define([
   'jquery',
   'pat-base',
   'mockup-utils',
-  'mockup-patterns-structure-url/js/views/app',
-  'text!mockup-patterns-structure-url/templates/paging.xml',
-  'text!mockup-patterns-structure-url/templates/selection_item.xml',
-  'text!mockup-patterns-structure-url/templates/tablerow.xml',
-  'text!mockup-patterns-structure-url/templates/table.xml',
-  'text!mockup-ui-url/templates/popover.xml',
+  'mockup-patterns-structure-url/js/views/app'
 ], function($, Base, utils, AppView) {
   'use strict';
 

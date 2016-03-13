@@ -15,6 +15,9 @@ New:
 
 Fixes:
 
+- Cleanup dependencies of the structure pattern.
+  [thet]
+
 - Fix ``Makefile`` to use ``mockup/build`` instead of ``build``.
   [thet]
 
