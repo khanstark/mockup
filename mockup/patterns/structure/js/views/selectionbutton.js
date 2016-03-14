@@ -1,8 +1,7 @@
 define([
-  'jquery',
   'mockup-ui-url/views/button',
   'text!mockup-patterns-structure-url/templates/selection_button.xml'
-], function($, ButtonView, tplButton) {
+], function(ButtonView, tplButton) {
   'use strict';
 
   var SelectionButton = ButtonView.extend({
